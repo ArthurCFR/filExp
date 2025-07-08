@@ -4,7 +4,7 @@
       "nom": "Achats",
       "icon": "🛒",
       "referent_metier": "Marie Dubois",
-      "nombre_testeurs": 5,
+      "nombre_testeurs": 10,
       "etat_avancement": "tests_realises",
       "description": "Gestion des approvisionnements, négociation des contrats fournisseurs, optimisation des coûts d'achat et suivi de la qualité. Assure des partenariats stratégiques et durables.",
       "acces": {
