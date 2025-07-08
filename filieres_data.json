@@ -7,6 +7,13 @@
       "nombre_testeurs": 10,
       "etat_avancement": "tests_realises",
       "description": "Gestion des approvisionnements, négociation des contrats fournisseurs, optimisation des coûts d'achat et suivi de la qualité. Assure des partenariats stratégiques et durables.",
+      "point_attention": "Attention aux données sensibles dans les négociations fournisseurs. Vérifier la conformité RGPD avant utilisation.",
+      "usages_phares": [
+        "Analyse des contrats fournisseurs",
+        "Rédaction de cahiers des charges",
+        "Négociation assistée par IA",
+        "Optimisation des coûts d'achat"
+      ],
       "acces": {
         "laposte_gpt": 8,
         "copilot_licences": 3
@@ -24,6 +31,13 @@
       "nombre_testeurs": 8,
       "etat_avancement": "ateliers_planifies",
       "description": "Communication interne et externe, gestion de l'image de marque, relations presse et médias sociaux. Développe la stratégie de communication et renforce la cohésion d'équipe.",
+      "point_attention": "Respecter la charte graphique et éditoriale. Validation obligatoire avant diffusion externe.",
+      "usages_phares": [
+        "Rédaction de communiqués de presse",
+        "Création de contenus réseaux sociaux",
+        "Synthèse de veille médiatique",
+        "Rédaction de newsletters internes"
+      ],
       "acces": {
         "laposte_gpt": 12,
         "copilot_licences": 5
@@ -41,6 +55,13 @@
       "nombre_testeurs": 3,
       "etat_avancement": "initialisation",
       "description": "Tenue des comptes, établissement des états financiers, contrôle de gestion et conformité fiscale. Garantit la fiabilité des informations financières et le respect des obligations.",
+      "point_attention": "Données financières sensibles. Respect strict des normes comptables et fiscales.",
+      "usages_phares": [
+        "Analyse des états financiers",
+        "Contrôle de cohérence comptable",
+        "Rédaction de notes explicatives",
+        "Aide aux déclarations fiscales"
+      ],
       "acces": {
         "laposte_gpt": 2,
         "copilot_licences": 1
@@ -58,6 +79,13 @@
       "nombre_testeurs": 4,
       "etat_avancement": "prompts_deployes",
       "description": "Veille réglementaire, mise en conformité des processus, gestion des risques et audit interne. Assure le respect des réglementations en vigueur et la maîtrise des risques.",
+      "point_attention": "Éviter les conseils juridiques spécifiques. Toujours valider avec un juriste avant application.",
+      "usages_phares": [
+        "Veille réglementaire automatisée",
+        "Analyse de conformité RGPD",
+        "Rédaction de procédures internes",
+        "Évaluation des risques opérationnels"
+      ],
       "acces": {
         "laposte_gpt": 6,
         "copilot_licences": 2
@@ -75,6 +103,13 @@
       "nombre_testeurs": 6,
       "etat_avancement": "tests_realises",
       "description": "Pilotage de la performance, analyse des écarts, élaboration des budgets et reporting. Optimise les processus décisionnels et améliore la rentabilité.",
+      "point_attention": "Vérifier la cohérence des données financières. Attention aux projections et hypothèses.",
+      "usages_phares": [
+        "Analyse des écarts budgétaires",
+        "Création de tableaux de bord",
+        "Modélisation financière",
+        "Rédaction de rapports de gestion"
+      ],
       "acces": {
         "laposte_gpt": 7,
         "copilot_licences": 4
@@ -92,6 +127,13 @@
       "nombre_testeurs": 10,
       "etat_avancement": "prompts_deployes",
       "description": "Conseil juridique, rédaction de contrats, gestion du contentieux et propriété intellectuelle. Protège les intérêts de l'entreprise et sécurise les opérations.",
+      "point_attention": "Ne remplace pas l'avis d'un juriste. Validation obligatoire par un professionnel du droit.",
+      "usages_phares": [
+        "Analyse de contrats commerciaux",
+        "Recherche de jurisprudence",
+        "Rédaction de clauses contractuelles",
+        "Veille juridique sectorielle"
+      ],
       "acces": {
         "laposte_gpt": 15,
         "copilot_licences": 8
@@ -109,6 +151,13 @@
       "nombre_testeurs": 7,
       "etat_avancement": "ateliers_planifies",
       "description": "Aménagement des espaces de travail, bien-être des employés, sécurité et qualité de vie au travail. Crée un environnement propice à la productivité et au bien-être.",
+      "point_attention": "Respecter les normes de sécurité et d'accessibilité. Consulter les représentants du personnel.",
+      "usages_phares": [
+        "Conception d'espaces de travail collaboratifs",
+        "Évaluation du bien-être au travail",
+        "Optimisation des flux de circulation",
+        "Amélioration de l'ergonomie des postes"
+      ],
       "acces": {
         "laposte_gpt": 9,
         "copilot_licences": 6
@@ -126,6 +175,13 @@
       "nombre_testeurs": 4,
       "etat_avancement": "initialisation",
       "description": "Planification financière stratégique, gestion de trésorerie, analyse d'investissement et financement. Optimise la structure financière et soutient la croissance.",
+      "point_attention": "Données financières confidentielles. Vérifier les calculs et hypothèses avec un expert.",
+      "usages_phares": [
+        "Modélisation financière",
+        "Analyse de rentabilité d'investissements",
+        "Prévisions de trésorerie",
+        "Structuration de financements"
+      ],
       "acces": {
         "laposte_gpt": 3,
         "copilot_licences": 2
@@ -143,6 +199,13 @@
       "nombre_testeurs": 8,
       "etat_avancement": "prompts_deployes",
       "description": "Gestion du patrimoine immobilier, négociation des baux, optimisation des espaces et projets immobiliers. Valorise les actifs immobiliers et réduit les coûts.",
+      "point_attention": "Vérifier les aspects réglementaires et urbanistiques. Consulter un notaire pour les actes.",
+      "usages_phares": [
+        "Analyse de marché immobilier",
+        "Rédaction de baux commerciaux",
+        "Évaluation de biens immobiliers",
+        "Optimisation des coûts immobiliers"
+      ],
       "acces": {
         "laposte_gpt": 11,
         "copilot_licences": 7
@@ -160,6 +223,13 @@
       "nombre_testeurs": 12,
       "etat_avancement": "tests_realises",
       "description": "Recrutement, formation, gestion des carrières et développement des compétences. Accompagne les collaborateurs et développe le capital humain de l'entreprise.",
+      "point_attention": "Respect strict de la confidentialité des données personnelles. Conformité RGPD obligatoire.",
+      "usages_phares": [
+        "Rédaction d'offres d'emploi",
+        "Analyse de CV et présélection",
+        "Création de plans de formation",
+        "Gestion des entretiens d'évaluation"
+      ],
       "acces": {
         "laposte_gpt": 18,
         "copilot_licences": 10
@@ -177,6 +247,13 @@
       "nombre_testeurs": 5,
       "etat_avancement": "ateliers_planifies",
       "description": "Direction Administrative et Relation Gouvernementale. Gestion des relations institutionnelles, coordination administrative et liaison avec les organismes gouvernementaux.",
+      "point_attention": "Respecter les protocoles institutionnels. Validation hiérarchique pour les communications officielles.",
+      "usages_phares": [
+        "Rédaction de courriers officiels",
+        "Préparation de dossiers réglementaires",
+        "Synthèse de textes législatifs",
+        "Gestion des relations avec les autorités"
+      ],
       "acces": {
         "laposte_gpt": 6,
         "copilot_licences": 3
@@ -194,6 +271,13 @@
       "nombre_testeurs": 6,
       "etat_avancement": "tests_realises",
       "description": "Sécurité des personnes et des biens, gestion des risques, surveillance et protection des installations. Assure la continuité des activités et la protection du patrimoine.",
+      "point_attention": "Informations sensibles sur la sécurité. Ne pas divulguer les procédures de sécurité.",
+      "usages_phares": [
+        "Analyse de risques sécuritaires",
+        "Rédaction de consignes de sécurité",
+        "Évaluation de vulnérabilités",
+        "Planification d'exercices de sécurité"
+      ],
       "acces": {
         "laposte_gpt": 8,
         "copilot_licences": 4

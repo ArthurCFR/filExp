@@ -57,6 +57,19 @@ def display_filiere_card(filiere_key, filiere_data, etats_config):
         # Description
         st.markdown("**Description:**")
         st.write(filiere_data.get('description', 'Aucune description disponible'))
+        
+        # Point d'attention
+        st.markdown("**⚠️ Point d'attention:**")
+        st.write(filiere_data.get('point_attention', 'Aucun point d\'attention spécifique'))
+        
+        # Usage(s) phare(s)
+        st.markdown("**🌟 Usage(s) phare(s):**")
+        usages = filiere_data.get('usages_phares', [])
+        if usages:
+            for usage in usages:
+                st.write(f"• {usage}")
+        else:
+            st.write("Aucun usage phare défini")
 
 def main():
     # Chargement des données
