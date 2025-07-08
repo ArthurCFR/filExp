@@ -35,56 +35,42 @@ def display_filiere_card(filiere_key, filiere_data, etats_config):
     etat = filiere_data.get('etat_avancement', 'initialisation')
     couleur = get_color_by_state(etat, etats_config)
     
-    # Style de la carte avec couleur dynamique
-    card_style = f"""
-    <div style="
-        background: linear-gradient(135deg, {couleur}22, {couleur}11);
-        border-left: 5px solid {couleur};
-        border-radius: 10px;
-        padding: 20px;
-        margin: 10px 0;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        border: 1px solid {couleur}44;
-    ">
-        <div style="display: flex; align-items: center; margin-bottom: 15px;">
-            <span style="font-size: 2em; margin-right: 15px;">{filiere_data.get('icon', '📁')}</span>
-            <h3 style="margin: 0; color: {couleur};">{filiere_data.get('nom', 'Filière')}</h3>
+    # Utilisation de st.container pour créer une carte stylisée
+    with st.container():
+        # Style CSS pour la carte - HTML structuré proprement
+        card_html = f"""
+        <div style="background: linear-gradient(135deg, {couleur}22, {couleur}11); border-left: 5px solid {couleur}; border-radius: 10px; padding: 20px; margin: 10px 0; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border: 1px solid {couleur}44;">
+            <div style="display: flex; align-items: center; margin-bottom: 15px;">
+                <span style="font-size: 2em; margin-right: 15px;">{filiere_data.get('icon', '📁')}</span>
+                <h3 style="margin: 0; color: {couleur};">{filiere_data.get('nom', 'Filière')}</h3>
+            </div>
+            
+            <div style="margin-bottom: 15px;">
+                <span style="background: {couleur}; color: white; padding: 5px 12px; border-radius: 20px; font-size: 0.9em; font-weight: bold;">{etats_config.get(etat, {}).get('label', 'État inconnu')}</span>
+            </div>
+            
+            <div style="margin-bottom: 10px;">
+                <strong>👤 Référent métier:</strong> {filiere_data.get('referent_metier', 'Non défini')}
+            </div>
+            
+            <div style="margin-bottom: 10px;">
+                <strong>🧪 Nombre de testeurs:</strong> {filiere_data.get('nombre_testeurs', 0)}
+            </div>
+            
+            <div style="margin-bottom: 10px;">
+                <strong>🔑 Accès LaPoste GPT:</strong> {filiere_data.get('acces', {}).get('laposte_gpt', 0)}
+            </div>
+            
+            <div style="margin-bottom: 15px;">
+                <strong>📋 Licences Copilot:</strong> {filiere_data.get('acces', {}).get('copilot_licences', 0)}
+            </div>
+            
+            <div style="font-size: 0.9em; color: #666; line-height: 1.4;">
+                {filiere_data.get('description', 'Aucune description disponible')}
+            </div>
         </div>
-        
-        <div style="margin-bottom: 15px;">
-            <span style="
-                background: {couleur};
-                color: white;
-                padding: 5px 12px;
-                border-radius: 20px;
-                font-size: 0.9em;
-                font-weight: bold;
-            ">{etats_config.get(etat, {}).get('label', 'État inconnu')}</span>
-        </div>
-        
-        <div style="margin-bottom: 10px;">
-            <strong>👤 Référent métier:</strong> {filiere_data.get('referent_metier', 'Non défini')}
-        </div>
-        
-        <div style="margin-bottom: 10px;">
-            <strong>🧪 Nombre de testeurs:</strong> {filiere_data.get('nombre_testeurs', 0)}
-        </div>
-        
-        <div style="margin-bottom: 10px;">
-            <strong>🔑 Accès LaPoste GPT:</strong> {filiere_data.get('acces', {}).get('laposte_gpt', 0)}
-        </div>
-        
-        <div style="margin-bottom: 15px;">
-            <strong>📋 Licences Copilot:</strong> {filiere_data.get('acces', {}).get('copilot_licences', 0)}
-        </div>
-        
-        <div style="font-size: 0.9em; color: #666; line-height: 1.4;">
-            {filiere_data.get('description', 'Aucune description disponible')}
-        </div>
-    </div>
-    """
-    
-    return card_style
+        """
+        st.markdown(card_html, unsafe_allow_html=True)
 
 def main():
     # Chargement des données
@@ -184,7 +170,7 @@ def main():
         cols = st.columns(2)
         for i, (key, filiere) in enumerate(filieres_filtrees.items()):
             with cols[i % 2]:
-                st.markdown(display_filiere_card(key, filiere, etats_config), unsafe_allow_html=True)
+                display_filiere_card(key, filiere, etats_config)
     
     elif mode_affichage == "Tableau":
         # Affichage en tableau
