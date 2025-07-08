@@ -1,0 +1,230 @@
+{
+  "filieres": {
+    "achats": {
+      "nom": "Achats",
+      "icon": "🛒",
+      "referent_metier": "Marie Dubois",
+      "nombre_testeurs": 5,
+      "etat_avancement": "tests_realises",
+      "description": "Gestion des approvisionnements, négociation des contrats fournisseurs, optimisation des coûts d'achat et suivi de la qualité. Assure des partenariats stratégiques et durables.",
+      "acces": {
+        "laposte_gpt": 8,
+        "copilot_licences": 3
+      },
+      "fopp_count": 10,
+      "prompt_experts": {
+        "accessible": 0,
+        "construction": 0
+      }
+    },
+    "communication": {
+      "nom": "Communication",
+      "icon": "📢",
+      "referent_metier": "Pierre Martin",
+      "nombre_testeurs": 8,
+      "etat_avancement": "ateliers_planifies",
+      "description": "Communication interne et externe, gestion de l'image de marque, relations presse et médias sociaux. Développe la stratégie de communication et renforce la cohésion d'équipe.",
+      "acces": {
+        "laposte_gpt": 12,
+        "copilot_licences": 5
+      },
+      "fopp_count": 8,
+      "prompt_experts": {
+        "accessible": 1,
+        "construction": 0
+      }
+    },
+    "comptabilite": {
+      "nom": "Comptabilité",
+      "icon": "📊",
+      "referent_metier": "Sophie Leclerc",
+      "nombre_testeurs": 3,
+      "etat_avancement": "initialisation",
+      "description": "Tenue des comptes, établissement des états financiers, contrôle de gestion et conformité fiscale. Garantit la fiabilité des informations financières et le respect des obligations.",
+      "acces": {
+        "laposte_gpt": 2,
+        "copilot_licences": 1
+      },
+      "fopp_count": 0,
+      "prompt_experts": {
+        "accessible": 0,
+        "construction": 0
+      }
+    },
+    "conformite": {
+      "nom": "Conformité",
+      "icon": "✅",
+      "referent_metier": "Laurent Rousseau",
+      "nombre_testeurs": 4,
+      "etat_avancement": "prompts_deployes",
+      "description": "Veille réglementaire, mise en conformité des processus, gestion des risques et audit interne. Assure le respect des réglementations en vigueur et la maîtrise des risques.",
+      "acces": {
+        "laposte_gpt": 6,
+        "copilot_licences": 2
+      },
+      "fopp_count": 2,
+      "prompt_experts": {
+        "accessible": 1,
+        "construction": 1
+      }
+    },
+    "controle_gestion": {
+      "nom": "Contrôle de Gestion",
+      "icon": "📈",
+      "referent_metier": "Claire Moreau",
+      "nombre_testeurs": 6,
+      "etat_avancement": "tests_realises",
+      "description": "Pilotage de la performance, analyse des écarts, élaboration des budgets et reporting. Optimise les processus décisionnels et améliore la rentabilité.",
+      "acces": {
+        "laposte_gpt": 7,
+        "copilot_licences": 4
+      },
+      "fopp_count": 3,
+      "prompt_experts": {
+        "accessible": 0,
+        "construction": 0
+      }
+    },
+    "direction_juridique": {
+      "nom": "Direction Juridique",
+      "icon": "⚖️",
+      "referent_metier": "Antoine Lefebvre",
+      "nombre_testeurs": 10,
+      "etat_avancement": "prompts_deployes",
+      "description": "Conseil juridique, rédaction de contrats, gestion du contentieux et propriété intellectuelle. Protège les intérêts de l'entreprise et sécurise les opérations.",
+      "acces": {
+        "laposte_gpt": 15,
+        "copilot_licences": 8
+      },
+      "fopp_count": 9,
+      "prompt_experts": {
+        "accessible": 2,
+        "construction": 4
+      }
+    },
+    "environnement_travail": {
+      "nom": "Environnement de Travail",
+      "icon": "🏢",
+      "referent_metier": "Isabelle Girard",
+      "nombre_testeurs": 7,
+      "etat_avancement": "ateliers_planifies",
+      "description": "Aménagement des espaces de travail, bien-être des employés, sécurité et qualité de vie au travail. Crée un environnement propice à la productivité et au bien-être.",
+      "acces": {
+        "laposte_gpt": 9,
+        "copilot_licences": 6
+      },
+      "fopp_count": 11,
+      "prompt_experts": {
+        "accessible": 0,
+        "construction": 0
+      }
+    },
+    "finance": {
+      "nom": "Finance",
+      "icon": "💰",
+      "referent_metier": "Thomas Bernard",
+      "nombre_testeurs": 4,
+      "etat_avancement": "initialisation",
+      "description": "Planification financière stratégique, gestion de trésorerie, analyse d'investissement et financement. Optimise la structure financière et soutient la croissance.",
+      "acces": {
+        "laposte_gpt": 3,
+        "copilot_licences": 2
+      },
+      "fopp_count": 0,
+      "prompt_experts": {
+        "accessible": 0,
+        "construction": 0
+      }
+    },
+    "immobilier": {
+      "nom": "Immobilier",
+      "icon": "🏗️",
+      "referent_metier": "Nathalie Petit",
+      "nombre_testeurs": 8,
+      "etat_avancement": "prompts_deployes",
+      "description": "Gestion du patrimoine immobilier, négociation des baux, optimisation des espaces et projets immobiliers. Valorise les actifs immobiliers et réduit les coûts.",
+      "acces": {
+        "laposte_gpt": 11,
+        "copilot_licences": 7
+      },
+      "fopp_count": 4,
+      "prompt_experts": {
+        "accessible": 4,
+        "construction": 2
+      }
+    },
+    "rh": {
+      "nom": "Ressources Humaines",
+      "icon": "👥",
+      "referent_metier": "François Durand",
+      "nombre_testeurs": 12,
+      "etat_avancement": "tests_realises",
+      "description": "Recrutement, formation, gestion des carrières et développement des compétences. Accompagne les collaborateurs et développe le capital humain de l'entreprise.",
+      "acces": {
+        "laposte_gpt": 18,
+        "copilot_licences": 10
+      },
+      "fopp_count": 2,
+      "prompt_experts": {
+        "accessible": 2,
+        "construction": 1
+      }
+    },
+    "darg": {
+      "nom": "DARG",
+      "icon": "📋",
+      "referent_metier": "Sylvie Arnaud",
+      "nombre_testeurs": 5,
+      "etat_avancement": "ateliers_planifies",
+      "description": "Direction Administrative et Relation Gouvernementale. Gestion des relations institutionnelles, coordination administrative et liaison avec les organismes gouvernementaux.",
+      "acces": {
+        "laposte_gpt": 6,
+        "copilot_licences": 3
+      },
+      "fopp_count": 2,
+      "prompt_experts": {
+        "accessible": 1,
+        "construction": 0
+      }
+    },
+    "securite": {
+      "nom": "Sécurité",
+      "icon": "🔒",
+      "referent_metier": "Michel Leblanc",
+      "nombre_testeurs": 6,
+      "etat_avancement": "tests_realises",
+      "description": "Sécurité des personnes et des biens, gestion des risques, surveillance et protection des installations. Assure la continuité des activités et la protection du patrimoine.",
+      "acces": {
+        "laposte_gpt": 8,
+        "copilot_licences": 4
+      },
+      "fopp_count": 2,
+      "prompt_experts": {
+        "accessible": 0,
+        "construction": 0
+      }
+    }
+  },
+  "etats_avancement": {
+    "initialisation": {
+      "label": "Initialisation",
+      "couleur": "#e74c3c",
+      "description": "Phase de démarrage"
+    },
+    "ateliers_planifies": {
+      "label": "Ateliers de test planifiés",
+      "couleur": "#f39c12",
+      "description": "Ateliers de test organisés"
+    },
+    "tests_realises": {
+      "label": "Tests réalisés",
+      "couleur": "#3498db",
+      "description": "Tests terminés avec succès"
+    },
+    "prompts_deployes": {
+      "label": "Prompts déployés",
+      "couleur": "#27ae60",
+      "description": "Prompts déployés auprès des testeurs"
+    }
+  }
+}
