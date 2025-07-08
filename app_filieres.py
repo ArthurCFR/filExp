@@ -37,40 +37,85 @@ def display_filiere_card(filiere_key, filiere_data, etats_config):
     
     # Utilisation de st.container pour créer une carte stylisée
     with st.container():
-        # Style CSS pour la carte - HTML structuré proprement
-        card_html = f"""
-        <div style="background: linear-gradient(135deg, {couleur}22, {couleur}11); border-left: 5px solid {couleur}; border-radius: 10px; padding: 20px; margin: 10px 0; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border: 1px solid {couleur}44;">
-            <div style="display: flex; align-items: center; margin-bottom: 15px;">
-                <span style="font-size: 2em; margin-right: 15px;">{filiere_data.get('icon', '📁')}</span>
-                <h3 style="margin: 0; color: {couleur};">{filiere_data.get('nom', 'Filière')}</h3>
+        # CSS personnalisé pour la carte
+        st.markdown(f"""
+        <style>
+        .filiere-card {{
+            background: linear-gradient(135deg, {couleur}22, {couleur}11);
+            border-left: 5px solid {couleur};
+            border-radius: 10px;
+            padding: 20px;
+            margin: 10px 0;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border: 1px solid {couleur}44;
+        }}
+        .filiere-header {{
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }}
+        .filiere-icon {{
+            font-size: 2em;
+            margin-right: 15px;
+        }}
+        .filiere-title {{
+            margin: 0;
+            color: {couleur};
+        }}
+        .filiere-status {{
+            background: {couleur};
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: bold;
+            margin-bottom: 15px;
+            display: inline-block;
+        }}
+        .filiere-info {{
+            margin-bottom: 10px;
+        }}
+        .filiere-description {{
+            font-size: 0.9em;
+            color: #666;
+            line-height: 1.4;
+        }}
+        </style>
+        """, unsafe_allow_html=True)
+        
+        # Contenu HTML de la carte
+        st.markdown(f"""
+        <div class="filiere-card">
+            <div class="filiere-header">
+                <span class="filiere-icon">{filiere_data.get('icon', '📁')}</span>
+                <h3 class="filiere-title">{filiere_data.get('nom', 'Filière')}</h3>
             </div>
             
-            <div style="margin-bottom: 15px;">
-                <span style="background: {couleur}; color: white; padding: 5px 12px; border-radius: 20px; font-size: 0.9em; font-weight: bold;">{etats_config.get(etat, {}).get('label', 'État inconnu')}</span>
+            <div class="filiere-status">
+                {etats_config.get(etat, {}).get('label', 'État inconnu')}
             </div>
             
-            <div style="margin-bottom: 10px;">
+            <div class="filiere-info">
                 <strong>👤 Référent métier:</strong> {filiere_data.get('referent_metier', 'Non défini')}
             </div>
             
-            <div style="margin-bottom: 10px;">
+            <div class="filiere-info">
                 <strong>🧪 Nombre de testeurs:</strong> {filiere_data.get('nombre_testeurs', 0)}
             </div>
             
-            <div style="margin-bottom: 10px;">
+            <div class="filiere-info">
                 <strong>🔑 Accès LaPoste GPT:</strong> {filiere_data.get('acces', {}).get('laposte_gpt', 0)}
             </div>
             
-            <div style="margin-bottom: 15px;">
+            <div class="filiere-info">
                 <strong>📋 Licences Copilot:</strong> {filiere_data.get('acces', {}).get('copilot_licences', 0)}
             </div>
             
-            <div style="font-size: 0.9em; color: #666; line-height: 1.4;">
+            <div class="filiere-description">
                 {filiere_data.get('description', 'Aucune description disponible')}
             </div>
         </div>
-        """
-        st.markdown(card_html, unsafe_allow_html=True)
+        """, unsafe_allow_html=True)
 
 def main():
     # Chargement des données
