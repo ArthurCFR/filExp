@@ -117,81 +117,81 @@ def display_filiere_card(filiere_key, filiere_data, etats_config):
     """
     st.markdown(header_html, unsafe_allow_html=True)
         
-        # Badge d'état
-        etat_label = etat_info.get('label', 'État inconnu')
-        st.markdown(f'<div class="etat-badge-{filiere_key}">🎯 {etat_label}</div>', unsafe_allow_html=True)
+    # Badge d'état
+    etat_label = etat_info.get('label', 'État inconnu')
+    st.markdown(f'<div class="etat-badge-{filiere_key}">🎯 {etat_label}</div>', unsafe_allow_html=True)
+    
+    # Informations principales dans des boîtes
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.markdown(f"""
+        <div class="info-box-{filiere_key}">
+            <strong>👤 Référent métier:</strong><br/>
+            {filiere_data.get('referent_metier', 'Non défini')}
+        </div>
+        """, unsafe_allow_html=True)
         
-        # Informations principales dans des boîtes
-        col1, col2 = st.columns(2)
+        st.markdown(f"""
+        <div class="info-box-{filiere_key}">
+            <strong>🧪 Nombre de testeurs:</strong><br/>
+            {filiere_data.get('nombre_testeurs', 0)}
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with col2:
+        st.markdown(f"""
+        <div class="info-box-{filiere_key}">
+            <strong>🔑 Accès LaPoste GPT:</strong><br/>
+            {filiere_data.get('acces', {}).get('laposte_gpt', 0)}
+        </div>
+        """, unsafe_allow_html=True)
         
-        with col1:
-            st.markdown(f"""
-            <div class="info-box-{filiere_key}">
-                <strong>👤 Référent métier:</strong><br/>
-                {filiere_data.get('referent_metier', 'Non défini')}
-            </div>
-            """, unsafe_allow_html=True)
-            
-            st.markdown(f"""
-            <div class="info-box-{filiere_key}">
-                <strong>🧪 Nombre de testeurs:</strong><br/>
-                {filiere_data.get('nombre_testeurs', 0)}
-            </div>
-            """, unsafe_allow_html=True)
-        
-        with col2:
-            st.markdown(f"""
-            <div class="info-box-{filiere_key}">
-                <strong>🔑 Accès LaPoste GPT:</strong><br/>
-                {filiere_data.get('acces', {}).get('laposte_gpt', 0)}
-            </div>
-            """, unsafe_allow_html=True)
-            
-            st.markdown(f"""
-            <div class="info-box-{filiere_key}">
-                <strong>📋 Licences Copilot:</strong><br/>
-                {filiere_data.get('acces', {}).get('copilot_licences', 0)}
-            </div>
-            """, unsafe_allow_html=True)
-        
-        # Point d'attention avec style
-        point_attention = filiere_data.get('point_attention', 'Aucun point d\'attention spécifique')
-        if point_attention != 'Aucun point d\'attention spécifique':
-            st.markdown(f"""
-            <div style="background: rgba(255,193,7,0.2); border-left: 4px solid #ffc107; padding: 10px; border-radius: 5px; margin: 10px 0;">
-                <strong>⚠️ Point d'attention:</strong><br/>
-                {point_attention}
-            </div>
-            """, unsafe_allow_html=True)
-        
-        # Usage(s) phare(s)
-        usages = filiere_data.get('usages_phares', [])
-        if usages:
-            st.markdown(f"""
-            <div class="info-box-{filiere_key}">
-                <strong>🌟 Usage(s) phare(s):</strong>
-                <ul style="margin: 5px 0 0 0; padding-left: 20px;">
-            """, unsafe_allow_html=True)
-            for usage in usages:
-                st.markdown(f"<li>{usage}</li>", unsafe_allow_html=True)
-            st.markdown("</ul></div>", unsafe_allow_html=True)
-        
-        # Événements récents (avec expander stylé)
-        with st.expander("📅 Événements récents", expanded=False):
-            evenements = filiere_data.get('evenements_recents', [])
-            if evenements:
-                for event in evenements:
-                    st.markdown(f"""
-                    <div style="background: rgba(255,255,255,0.6); padding: 10px; border-radius: 5px; margin-bottom: 10px;">
-                        <strong>{event.get('date', 'Date inconnue')}</strong> - {event.get('titre', 'Titre inconnu')}<br/>
-                        <span style="color: #666;">{event.get('description', 'Aucune description')}</span>
-                    </div>
-                    """, unsafe_allow_html=True)
-            else:
-                st.write("Aucun événement récent")
-        
-        st.markdown('</div>', unsafe_allow_html=True)
-        st.markdown("", unsafe_allow_html=True)  # Espace supplémentaire entre les cartes
+        st.markdown(f"""
+        <div class="info-box-{filiere_key}">
+            <strong>📋 Licences Copilot:</strong><br/>
+            {filiere_data.get('acces', {}).get('copilot_licences', 0)}
+        </div>
+        """, unsafe_allow_html=True)
+    
+    # Point d'attention avec style
+    point_attention = filiere_data.get('point_attention', 'Aucun point d\'attention spécifique')
+    if point_attention != 'Aucun point d\'attention spécifique':
+        st.markdown(f"""
+        <div style="background: rgba(255,193,7,0.2); border-left: 4px solid #ffc107; padding: 10px; border-radius: 5px; margin: 10px 0;">
+            <strong>⚠️ Point d'attention:</strong><br/>
+            {point_attention}
+        </div>
+        """, unsafe_allow_html=True)
+    
+    # Usage(s) phare(s)
+    usages = filiere_data.get('usages_phares', [])
+    if usages:
+        st.markdown(f"""
+        <div class="info-box-{filiere_key}">
+            <strong>🌟 Usage(s) phare(s):</strong>
+            <ul style="margin: 5px 0 0 0; padding-left: 20px;">
+        """, unsafe_allow_html=True)
+        for usage in usages:
+            st.markdown(f"<li>{usage}</li>", unsafe_allow_html=True)
+        st.markdown("</ul></div>", unsafe_allow_html=True)
+    
+    # Événements récents (avec expander stylé)
+    with st.expander("📅 Événements récents", expanded=False):
+        evenements = filiere_data.get('evenements_recents', [])
+        if evenements:
+            for event in evenements:
+                st.markdown(f"""
+                <div style="background: rgba(255,255,255,0.6); padding: 10px; border-radius: 5px; margin-bottom: 10px;">
+                    <strong>{event.get('date', 'Date inconnue')}</strong> - {event.get('titre', 'Titre inconnu')}<br/>
+                    <span style="color: #666;">{event.get('description', 'Aucune description')}</span>
+                </div>
+                """, unsafe_allow_html=True)
+        else:
+            st.write("Aucun événement récent")
+    
+    st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown("", unsafe_allow_html=True)  # Espace supplémentaire entre les cartes
 
 def main():
     # Style global pour améliorer l'apparence
