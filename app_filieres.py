@@ -873,7 +873,7 @@ def main():
     
     elif mode_affichage == "Édition":
         # Mode édition
-        st.subheader("✏️ Édition des données")
+        st.subheader("✏️ Édition des données - N'oubliez pas d'enregistrer vos changements")
         
         # Sélection de la filière à éditer avec navigation
         if filieres_filtrees:
