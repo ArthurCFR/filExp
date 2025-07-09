@@ -822,13 +822,105 @@ def main():
         # Mode édition
         st.subheader("✏️ Édition des données")
         
-        # Sélection de la filière à éditer
+        # Sélection de la filière à éditer avec navigation
         if filieres_filtrees:
-            filiere_a_editer = st.selectbox(
-                "Sélectionnez une filière à éditer",
-                list(filieres_filtrees.keys()),
-                format_func=lambda x: f"{filieres[x].get('icon', '📁')} {filieres[x].get('nom', 'Filière')}"
-            )
+            filieres_keys = list(filieres_filtrees.keys())
+            
+            # Initialiser la filière sélectionnée
+            if "filiere_editee_index" not in st.session_state:
+                st.session_state.filiere_editee_index = 0
+            
+            # S'assurer que l'index est dans les limites
+            if st.session_state.filiere_editee_index >= len(filieres_keys):
+                st.session_state.filiere_editee_index = 0
+            
+            # Fonction pour détecter les changements
+            def detecter_changements(filiere_key, filiere_data):
+                """Détecte si des changements ont été faits dans les champs"""
+                if f"ref_{filiere_key}" in st.session_state:
+                    return (
+                        st.session_state.get(f"ref_{filiere_key}", "") != filiere_data.get('referent_metier', '') or
+                        st.session_state.get(f"refdelegues_{filiere_key}", 0) != filiere_data.get('nombre_referents_delegues', 0) or
+                        st.session_state.get(f"collabIAGen_{filiere_key}", 0) != filiere_data.get('nombre_collaborateurs_sensibilises', 0) or
+                        st.session_state.get(f"collabTotal_{filiere_key}", 0) != filiere_data.get('nombre_collaborateurs_total', 0) or
+                        st.session_state.get(f"autonomie_{filiere_key}", "") != filiere_data.get('niveau_autonomie', '') or
+                        st.session_state.get(f"fopp_{filiere_key}", 0) != filiere_data.get('fopp_count', 0) or
+                        st.session_state.get(f"etat_{filiere_key}", "") != filiere_data.get('etat_avancement', '') or
+                        st.session_state.get(f"gpt_{filiere_key}", 0) != filiere_data.get('acces', {}).get('laposte_gpt', 0) or
+                        st.session_state.get(f"copilot_{filiere_key}", 0) != filiere_data.get('acces', {}).get('copilot_licences', 0) or
+                        st.session_state.get(f"attention_{filiere_key}", "") != filiere_data.get('point_attention', '')
+                    )
+                return False
+            
+            # Interface de navigation
+            col1, col2, col3 = st.columns([1, 6, 1])
+            
+            with col1:
+                if st.button("◀", key="nav_prev", help="Filière précédente"):
+                    current_filiere = filieres_keys[st.session_state.filiere_editee_index]
+                    if detecter_changements(current_filiere, filieres[current_filiere]):
+                        st.session_state.navigation_pending = "prev"
+                        st.session_state.show_save_dialog = True
+                        st.session_state.filiere_nom_dialog = filieres[current_filiere].get('nom', 'Filière')
+                    else:
+                        st.session_state.filiere_editee_index = (st.session_state.filiere_editee_index - 1) % len(filieres_keys)
+                        st.rerun()
+            
+            with col2:
+                filiere_a_editer = st.selectbox(
+                    "Sélectionnez une filière à éditer",
+                    filieres_keys,
+                    index=st.session_state.filiere_editee_index,
+                    format_func=lambda x: f"{filieres[x].get('icon', '📁')} {filieres[x].get('nom', 'Filière')}",
+                    key="filiere_selectbox"
+                )
+                
+                # Mettre à jour l'index si changé via le selectbox
+                if filiere_a_editer != filieres_keys[st.session_state.filiere_editee_index]:
+                    st.session_state.filiere_editee_index = filieres_keys.index(filiere_a_editer)
+            
+            with col3:
+                if st.button("▶", key="nav_next", help="Filière suivante"):
+                    current_filiere = filieres_keys[st.session_state.filiere_editee_index]
+                    if detecter_changements(current_filiere, filieres[current_filiere]):
+                        st.session_state.navigation_pending = "next"
+                        st.session_state.show_save_dialog = True
+                        st.session_state.filiere_nom_dialog = filieres[current_filiere].get('nom', 'Filière')
+                    else:
+                        st.session_state.filiere_editee_index = (st.session_state.filiere_editee_index + 1) % len(filieres_keys)
+                        st.rerun()
+            
+            # Dialog de confirmation pour sauvegarder
+            if st.session_state.get("show_save_dialog", False):
+                st.warning(f"⚠️ Vous avez des modifications non sauvegardées sur la filière '{st.session_state.filiere_nom_dialog}'")
+                
+                col1, col2, col3 = st.columns([1, 1, 1])
+                with col1:
+                    if st.button("💾 Sauvegarder", key="save_and_nav"):
+                        # Sauvegarder les modifications actuelles
+                        current_filiere = filieres_keys[st.session_state.filiere_editee_index]
+                        # Déclencher la sauvegarde (logique à ajouter)
+                        st.session_state.force_save = True
+                        st.session_state.show_save_dialog = False
+                        st.rerun()
+                
+                with col2:
+                    if st.button("🗑️ Ignorer", key="ignore_and_nav"):
+                        # Ignorer les modifications et naviguer
+                        if st.session_state.navigation_pending == "prev":
+                            st.session_state.filiere_editee_index = (st.session_state.filiere_editee_index - 1) % len(filieres_keys)
+                        elif st.session_state.navigation_pending == "next":
+                            st.session_state.filiere_editee_index = (st.session_state.filiere_editee_index + 1) % len(filieres_keys)
+                        
+                        st.session_state.show_save_dialog = False
+                        st.session_state.navigation_pending = None
+                        st.rerun()
+                
+                with col3:
+                    if st.button("❌ Annuler", key="cancel_nav"):
+                        st.session_state.show_save_dialog = False
+                        st.session_state.navigation_pending = None
+                        st.rerun()
             
             if filiere_a_editer:
                 filiere_data = filieres[filiere_a_editer]
@@ -974,7 +1066,7 @@ def main():
                     # Bouton de sauvegarde
                     col1, col2, col3 = st.columns([1, 1, 1])
                     with col2:
-                        if st.button("💾 Sauvegarder les modifications", type="primary", use_container_width=True):
+                        if st.button("💾 Sauvegarder les modifications", type="primary", use_container_width=True) or st.session_state.get("force_save", False):
                             # Convertir les données
                             nouveaux_usages = [usage.strip() for usage in nouveaux_usages_text.split('\n') if usage.strip()]
                             
@@ -1009,6 +1101,16 @@ def main():
                                 # Message de succès temporaire avec timestamp
                                 st.session_state["success_message"] = True
                                 st.session_state["success_timestamp"] = datetime.now().timestamp()
+                                
+                                # Si c'était une sauvegarde forcée, naviguer après
+                                if st.session_state.get("force_save", False):
+                                    st.session_state.force_save = False
+                                    if st.session_state.get("navigation_pending") == "prev":
+                                        st.session_state.filiere_editee_index = (st.session_state.filiere_editee_index - 1) % len(filieres_keys)
+                                    elif st.session_state.get("navigation_pending") == "next":
+                                        st.session_state.filiere_editee_index = (st.session_state.filiere_editee_index + 1) % len(filieres_keys)
+                                    st.session_state.navigation_pending = None
+                                
                                 st.rerun()
                     
                     # Affichage du message de succès temporaire
