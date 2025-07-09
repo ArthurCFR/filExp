@@ -161,31 +161,27 @@ def display_filiere_card(filiere_key, filiere_data, etats_config):
         
         # Événements récents dans un expander
         st.markdown("---")
-        with st.expander("�� Événements récents", expanded=False):
-            # Ajout du bouton + pour ajouter un événement
-            with st.container():
-                col_add, col_spacer = st.columns([0.1, 0.9])
-                with col_add:
-                    if st.button("➕", key=f"add_event_{filiere_key}", help="Ajouter un événement récent"):
-                        with st.form(key=f"form_add_event_{filiere_key}", clear_on_submit=True):
-                            new_date = st.date_input("Date", value=datetime.now())
-                            new_title = st.text_input("Titre")
-                            new_desc = st.text_area("Description")
-                            submitted = st.form_submit_button("Enregistrer")
-                            if submitted and new_title and new_desc:
-                                # Charger les données
-                                data = load_data()
-                                filieres = data.get('filieres', {})
-                                evenements = filieres.get(filiere_key, {}).get('evenements_recents', [])
-                                evenements.insert(0, {
-                                    'date': new_date.strftime('%Y-%m-%d'),
-                                    'titre': new_title,
-                                    'description': new_desc
-                                })
-                                filieres[filiere_key]['evenements_recents'] = evenements
-                                save_data(data)
-                                st.success("Événement ajouté avec succès !")
-                                st.rerun()
+        with st.expander("📅 Événements récents", expanded=False):
+            if st.button("➕ Ajouter un événement", key=f"add_event_{filiere_key}", help="Ajouter un événement récent"):
+                with st.form(key=f"form_add_event_{filiere_key}", clear_on_submit=True):
+                    new_date = st.date_input("Date", value=datetime.now())
+                    new_title = st.text_input("Titre")
+                    new_desc = st.text_area("Description")
+                    submitted = st.form_submit_button("Enregistrer")
+                    if submitted and new_title and new_desc:
+                        # Charger les données
+                        data = load_data()
+                        filieres = data.get('filieres', {})
+                        evenements = filieres.get(filiere_key, {}).get('evenements_recents', [])
+                        evenements.insert(0, {
+                            'date': new_date.strftime('%Y-%m-%d'),
+                            'titre': new_title,
+                            'description': new_desc
+                        })
+                        filieres[filiere_key]['evenements_recents'] = evenements
+                        save_data(data)
+                        st.success("Événement ajouté avec succès !")
+                        st.rerun()
             evenements = filiere_data.get('evenements_recents', [])
             if evenements:
                 for i, event in enumerate(evenements):
@@ -562,7 +558,7 @@ def main():
     st.markdown(f"*Dernière mise à jour: {datetime.now().strftime('%d/%m/%Y %H:%M')}*")
 
     # Affichage du toast de succès si paramètre dans l'URL
-    query_params = st.experimental_get_query_params()
+    query_params = st.query_params
     if query_params.get("success") == ["1"]:
         st.success("✅ Modifications sauvegardées avec succès!", icon="✅")
         st.experimental_set_query_params(success=None)
