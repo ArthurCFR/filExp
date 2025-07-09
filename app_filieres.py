@@ -425,26 +425,19 @@ def main():
                         display_filiere_card(key, filiere, etats_config)
     
     elif mode_affichage == "Tableau":
-        # Affichage en tableau
         import pandas as pd
         # Mapping des états pour le tableau
         etats_labels_custom = {
-            'prompts_deployes': 'AVANCÉ',
-            'tests_realises': 'INTERMÉDIAIRE',
-            'ateliers_planifies': 'NAISSANT',
-            'initialisation': 'À ENGAGER'
-        }
-        etats_couleurs = {
-            'prompts_deployes': '#c8e6c9',
-            'tests_realises': '#add8e6',
-            'ateliers_planifies': '#ffe4b5',
-            'initialisation': '#ffcccb'
+            'prompts_deployes': '🟢 AVANCÉ',
+            'tests_realises': '🔵 INTERMÉDIAIRE',
+            'ateliers_planifies': '🟡 NAISSANT',
+            'initialisation': '🔴 À ENGAGER'
         }
         table_data = []
         for key, filiere in filieres_filtrees.items():
             etat = filiere.get('etat_avancement', 'initialisation')
             table_data.append({
-                'État': etats_labels_custom.get(etat, etats_config.get(etat, {}).get('label', 'État inconnu')),
+                'État': etats_labels_custom.get(etat, etat),
                 'Filière': f"{filiere.get('icon', '📁')} {filiere.get('nom', 'Filière')}",
                 'Référent': filiere.get('referent_metier', 'Non défini'),
                 'Référents délégués': filiere.get('nombre_referents_delegues', 0),
@@ -457,14 +450,9 @@ def main():
             })
         if table_data:
             df = pd.DataFrame(table_data)
-            # Grouper par état et appliquer une couleur de fond par état
-            def color_etat(row):
-                couleur = etats_couleurs.get(row['État'].split(' ')[0].lower(), '#fff')
-                return [f'background-color: {couleur}22' for _ in row]
             df_sorted = df.sort_values(by=['État'])
-            styled_df = df_sorted.style.apply(color_etat, axis=1)
             st.dataframe(
-                styled_df,
+                df_sorted,
                 use_container_width=True,
                 hide_index=True
             )
