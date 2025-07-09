@@ -215,7 +215,7 @@ def display_filiere_card(filiere_key, filiere_data, etats_config):
                 margin-bottom: 5px;
                 font-size: 0.9em;'>
                 <strong>🎓 Collaborateurs sensibilisés IAGen:</strong><br/>
-                {filiere_data.get('nombre_collaborateurs_sensibilises', 0)}
+                {filiere_data.get('nombre_collaborateurs_sensibilises', 0)}{' (' + str(round((filiere_data.get('nombre_collaborateurs_sensibilises', 0) / filiere_data.get('nombre_collaborateurs_total', 1)) * 100, 1)) + '%)' if filiere_data.get('nombre_collaborateurs_total', 0) > 0 else ''}
                 </div>""",
                 unsafe_allow_html=True
             )
@@ -251,7 +251,7 @@ def display_filiere_card(filiere_key, filiere_data, etats_config):
                 border-left: 2px solid {couleur_bordure};
                 margin-bottom: 5px;
                 font-size: 0.9em;'>
-                <strong>📄 Nb fiches d'opportunité:</strong><br/>
+                <strong>📄 Fiches d'opportunité:</strong><br/>
                 {filiere_data.get('fopp_count', 0)}
                 </div>""",
                 unsafe_allow_html=True
@@ -992,13 +992,54 @@ def main():
                         'a_initier': 'À INITIER'
                     }
                     st.markdown("**🎯 État d'avancement**")
-                    nouvel_etat = st.selectbox(
-                        "État d'avancement",
-                        list(etats_config.keys()),
-                        index=list(etats_config.keys()).index(filiere_data.get('etat_avancement', 'initialisation')),
-                        format_func=lambda x: etats_labels_custom.get(x, etats_config.get(x, {}).get('label', x)) or str(x),
-                        key=f"etat_{filiere_a_editer}"
-                    )
+                    
+                    # Boutons colorés pour les états
+                    etat_actuel = filiere_data.get('etat_avancement', 'a_initier')
+                    
+                    # Affichage des boutons en ligne avec les couleurs des états
+                    col1, col2, col3, col4 = st.columns(4)
+                    
+                    nouvel_etat = etat_actuel  # Par défaut, garder l'état actuel
+                    
+                    with col1:
+                        couleur_avance = etats_config.get('prompts_deployes', {}).get('couleur_bordure', '#28a745')
+                        if st.button("🟢 AVANCÉ", 
+                                   type="primary" if etat_actuel == 'prompts_deployes' else "secondary",
+                                   use_container_width=True,
+                                   key=f"btn_avance_{filiere_a_editer}"):
+                            nouvel_etat = 'prompts_deployes'
+                            st.session_state[f"etat_{filiere_a_editer}"] = 'prompts_deployes'
+                    
+                    with col2:
+                        couleur_inter = etats_config.get('tests_realises', {}).get('couleur_bordure', '#007bff')
+                        if st.button("🔵 INTERMÉDIAIRE", 
+                                   type="primary" if etat_actuel == 'tests_realises' else "secondary",
+                                   use_container_width=True,
+                                   key=f"btn_inter_{filiere_a_editer}"):
+                            nouvel_etat = 'tests_realises'
+                            st.session_state[f"etat_{filiere_a_editer}"] = 'tests_realises'
+                    
+                    with col3:
+                        couleur_emergence = etats_config.get('en_emergence', {}).get('couleur_bordure', '#ffc107')
+                        if st.button("🟡 EN ÉMERGENCE", 
+                                   type="primary" if etat_actuel == 'en_emergence' else "secondary",
+                                   use_container_width=True,
+                                   key=f"btn_emergence_{filiere_a_editer}"):
+                            nouvel_etat = 'en_emergence'
+                            st.session_state[f"etat_{filiere_a_editer}"] = 'en_emergence'
+                    
+                    with col4:
+                        couleur_initier = etats_config.get('a_initier', {}).get('couleur_bordure', '#dc3545')
+                        if st.button("🔴 À INITIER", 
+                                   type="primary" if etat_actuel == 'a_initier' else "secondary",
+                                   use_container_width=True,
+                                   key=f"btn_initier_{filiere_a_editer}"):
+                            nouvel_etat = 'a_initier'
+                            st.session_state[f"etat_{filiere_a_editer}"] = 'a_initier'
+                    
+                    # Récupérer l'état depuis le session_state si il a été modifié
+                    if f"etat_{filiere_a_editer}" in st.session_state:
+                        nouvel_etat = st.session_state[f"etat_{filiere_a_editer}"]
                                             # Niveau d'autonomie
                     options_autonomie = [
                         "Besoin d'accompagnement faible",
