@@ -888,7 +888,7 @@ def main():
                 st.session_state.filiere_editee_index = 0
             
             # Interface de navigation
-            col1, col2, col3 = st.columns([0.5, 3, 0.5])
+            col1, col2, col3 = st.columns([0.5, 2, 2])
             
             with col1:
                 if st.button("◀", key="nav_prev", help="Filière précédente"):
