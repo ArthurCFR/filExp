@@ -19,7 +19,7 @@ except ImportError:
 
 # Configuration de la page
 st.set_page_config(
-    page_title="Suivi des Filières Support - La Poste",
+    page_title="Tableau de bord des filières support - La Poste",
     page_icon="📊",
     layout="wide",
     initial_sidebar_state="collapsed"
@@ -355,7 +355,7 @@ def main():
     etats_config = data.get('etats_avancement', {})
     
     # Titre principal
-    st.title("📊 Suivi des Filières Support - La Poste")
+    st.title("📊 Tableau de bord des filières support - La Poste")
     st.markdown("### Expérimentations sur les outils IA Génératifs")
     
     # Sidebar pour les filtres
