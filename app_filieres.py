@@ -549,7 +549,7 @@ def main():
                             save_data(data)
                             
                             st.success("✅ Modifications sauvegardées avec succès!", icon="✅")
-                            st.experimental_set_query_params(success="1")
+                            st.query_params["success"] = "1"
                             st.rerun()
         else:
             st.info("Aucune filière ne correspond aux filtres sélectionnés.")
@@ -562,7 +562,7 @@ def main():
     query_params = st.query_params
     if query_params.get("success") == ["1"]:
         st.success("✅ Modifications sauvegardées avec succès!", icon="✅")
-        st.experimental_set_query_params(success=None)
+        del st.query_params["success"]
 
 if __name__ == "__main__":
     main()
