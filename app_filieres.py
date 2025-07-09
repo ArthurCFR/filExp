@@ -1133,9 +1133,6 @@ def main():
                             events_session != events_text_original
                         )
                     
-                    # Afficher le message d'avertissement simple si des changements sont détectés
-                    if check_if_changed():
-                        st.warning("⚠️ ATTENTION : Vous n'avez pas enregistré vos modifications")
                     
                     # Sauvegarde uniquement quand le bouton est cliqué
                     if save_clicked:
