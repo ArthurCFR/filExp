@@ -427,7 +427,6 @@ def main():
     elif mode_affichage == "Tableau":
         # Affichage en tableau
         import pandas as pd
-        
         # Mapping des états pour le tableau
         etats_labels_custom = {
             'prompts_deployes': 'AVANCÉ',
@@ -435,33 +434,47 @@ def main():
             'ateliers_planifies': 'NAISSANT',
             'initialisation': 'À ENGAGER'
         }
-        
+        etats_couleurs = {
+            'prompts_deployes': '#c8e6c9',
+            'tests_realises': '#add8e6',
+            'ateliers_planifies': '#ffe4b5',
+            'initialisation': '#ffcccb'
+        }
         table_data = []
         for key, filiere in filieres_filtrees.items():
             etat = filiere.get('etat_avancement', 'initialisation')
             table_data.append({
-                'Filière': f"{filiere.get('icon', '📁')} {filiere.get('nom', 'Filière')}",
                 'État': etats_labels_custom.get(etat, etats_config.get(etat, {}).get('label', 'État inconnu')),
+                'Filière': f"{filiere.get('icon', '📁')} {filiere.get('nom', 'Filière')}",
                 'Référent': filiere.get('referent_metier', 'Non défini'),
-                'Testeurs': filiere.get('nombre_testeurs', 0),
+                'Référents délégués': filiere.get('nombre_referents_delegues', 0),
+                'Collab. sensibilisés IAGen': filiere.get('nombre_collaborateurs_sensibilises', 0),
+                'Collab. total': filiere.get('nombre_collaborateurs_total', 0),
+                'Niveau autonomie': filiere.get('niveau_autonomie', ''),
+                'Fiches opportunité': filiere.get('fopp_count', 0),
                 'LaPoste GPT': filiere.get('acces', {}).get('laposte_gpt', 0),
                 'Copilot': filiere.get('acces', {}).get('copilot_licences', 0)
             })
-        
         if table_data:
             df = pd.DataFrame(table_data)
+            # Grouper par état et appliquer une couleur de fond par état
+            def color_etat(row):
+                couleur = etats_couleurs.get(row['État'].split(' ')[0].lower(), '#fff')
+                return [f'background-color: {couleur}22' for _ in row]
+            df_sorted = df.sort_values(by=['État'])
+            styled_df = df_sorted.style.apply(color_etat, axis=1)
             st.dataframe(
-                df,
+                styled_df,
                 use_container_width=True,
-                hide_index=True,
-                column_config={
-                    "Filière": st.column_config.TextColumn("Filière", width="large"),
-                    "État": st.column_config.TextColumn("État", width="medium"),
-                    "Référent": st.column_config.TextColumn("Référent", width="medium"),
-                    "Testeurs": st.column_config.NumberColumn("Testeurs", width="small"),
-                    "LaPoste GPT": st.column_config.NumberColumn("LaPoste GPT", width="small"),
-                    "Copilot": st.column_config.NumberColumn("Copilot", width="small")
-                }
+                hide_index=True
+            )
+            # Export CSV
+            csv = df_sorted.to_csv(index=False).encode('utf-8')
+            st.download_button(
+                label="📥 Exporter en CSV",
+                data=csv,
+                file_name='filiere_tableau.csv',
+                mime='text/csv'
             )
     
     elif mode_affichage == "Édition":
