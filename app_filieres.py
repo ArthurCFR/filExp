@@ -652,63 +652,12 @@ def main():
     st.header("🗂️ Fiches d'avancement des filières")
     st.write(f"*{len(filieres_filtrees)} filière(s) affichée(s)*")
     
-    # Simple tracking des modifications non sauvegardées
-    has_unsaved_changes = st.session_state.get("has_unsaved_changes", False)
-    
-    # Gestion des dialogues de confirmation avant le rendu du radio button
-    if st.session_state.get("show_navigation_dialog", False):
-        st.warning("⚠️ Continuer sans enregistrer (toute modification sera perdue) ?")
-        
-        col1, col2 = st.columns(2)
-        with col1:
-            if st.button("Oui", key="confirm_nav_lose_changes_top"):
-                # Naviguer sans sauvegarder
-                if st.session_state.navigation_pending == "change_view":
-                    # Changer de vue - pas besoin de modification du radio, on laisse faire
-                    st.session_state.mode_precedent = st.session_state.mode_target
-                
-                st.session_state.has_unsaved_changes = False
-                st.session_state.show_navigation_dialog = False
-                st.session_state.navigation_pending = None
-                st.rerun()
-        
-        with col2:
-            if st.button("Non", key="cancel_nav_lose_changes_top"):
-                # Annuler - rester en mode édition
-                if st.session_state.navigation_pending == "change_view":
-                    # Forcer le retour à Édition pour le prochain rendu
-                    st.session_state["mode_affichage_radio"] = "Édition"
-                
-                st.session_state.show_navigation_dialog = False
-                st.session_state.navigation_pending = None
-                st.rerun()
-    
-    # Déterminer le mode d'affichage à utiliser
-    if st.session_state.get("show_navigation_dialog", False) and st.session_state.get("navigation_pending") == "change_view":
-        # En cours de dialogue pour changement de vue - rester en édition
-        mode_affichage_radio_value = "Édition"
-    else:
-        mode_affichage_radio_value = st.session_state.get("mode_affichage_radio", "Cartes")
-    
     mode_affichage = st.radio(
         "Mode d'affichage",
         ["Cartes", "Tableau", "Édition"],
         horizontal=True,
-        key="mode_affichage_radio",
-        index=["Cartes", "Tableau", "Édition"].index(mode_affichage_radio_value)
+        key="mode_affichage_radio"
     )
-    
-    # Vérifier si on quitte l'édition avec des modifications non sauvegardées
-    mode_precedent = st.session_state.get("mode_precedent", "Cartes")
-    if mode_precedent == "Édition" and mode_affichage != "Édition" and has_unsaved_changes:
-        st.session_state.show_navigation_dialog = True
-        st.session_state.navigation_pending = "change_view"
-        st.session_state.mode_target = mode_affichage
-        # Revenir au mode précédent temporairement
-        mode_affichage = "Édition"
-    else:
-        # Mettre à jour le mode précédent seulement si pas de dialogue en cours
-        st.session_state.mode_precedent = mode_affichage
     
     
     # Auto-refresh invisible - actualise automatiquement toutes les 15 secondes
@@ -938,22 +887,23 @@ def main():
             if st.session_state.filiere_editee_index >= len(filieres_keys):
                 st.session_state.filiere_editee_index = 0
             
-            # Fonction pour détecter les changements - utilise le flag simple
-            def detecter_changements(filiere_key, filiere_data):
-                """Détecte si des changements ont été faits dans les champs"""
-                return st.session_state.get("has_unsaved_changes", False)
+            # Fonction d'auto-sauvegarde
+            def auto_save(filiere_key):
+                """Sauvegarde automatique des modifications"""
+                data = load_data()
+                if data and filiere_key in data.get('filieres', {}):
+                    save_data(data)
+                    # Message de confirmation temporaire
+                    st.session_state["auto_save_message"] = True
+                    st.session_state["auto_save_timestamp"] = datetime.now().timestamp()
             
             # Interface de navigation
             col1, col2, col3 = st.columns([1, 6, 1])
             
             with col1:
                 if st.button("◀", key="nav_prev", help="Filière précédente"):
-                    if st.session_state.get("has_unsaved_changes", False):
-                        st.session_state.navigation_pending = "prev"
-                        st.session_state.show_navigation_dialog = True
-                    else:
-                        st.session_state.filiere_editee_index = (st.session_state.filiere_editee_index - 1) % len(filieres_keys)
-                        st.rerun()
+                    st.session_state.filiere_editee_index = (st.session_state.filiere_editee_index - 1) % len(filieres_keys)
+                    st.rerun()
             
             with col2:
                 filiere_a_editer = st.selectbox(
@@ -970,36 +920,9 @@ def main():
             
             with col3:
                 if st.button("▶", key="nav_next", help="Filière suivante"):
-                    if st.session_state.get("has_unsaved_changes", False):
-                        st.session_state.navigation_pending = "next"
-                        st.session_state.show_navigation_dialog = True
-                    else:
-                        st.session_state.filiere_editee_index = (st.session_state.filiere_editee_index + 1) % len(filieres_keys)
-                        st.rerun()
+                    st.session_state.filiere_editee_index = (st.session_state.filiere_editee_index + 1) % len(filieres_keys)
+                    st.rerun()
             
-            # Dialog de confirmation pour navigation de filières uniquement
-            if st.session_state.get("show_navigation_dialog", False) and st.session_state.get("navigation_pending") in ["prev", "next"]:
-                st.warning("⚠️ Continuer sans enregistrer (toute modification sera perdue) ?")
-                
-                col1, col2 = st.columns(2)
-                with col1:
-                    if st.button("Oui", key="confirm_nav_lose_changes"):
-                        # Naviguer sans sauvegarder
-                        if st.session_state.navigation_pending == "prev":
-                            st.session_state.filiere_editee_index = (st.session_state.filiere_editee_index - 1) % len(filieres_keys)
-                        elif st.session_state.navigation_pending == "next":
-                            st.session_state.filiere_editee_index = (st.session_state.filiere_editee_index + 1) % len(filieres_keys)
-                        
-                        st.session_state.has_unsaved_changes = False
-                        st.session_state.show_navigation_dialog = False
-                        st.session_state.navigation_pending = None
-                        st.rerun()
-                
-                with col2:
-                    if st.button("Non", key="cancel_nav_lose_changes"):
-                        st.session_state.show_navigation_dialog = False
-                        st.session_state.navigation_pending = None
-                        st.rerun()
             
             if filiere_a_editer:
                 filiere_data = filieres[filiere_a_editer]
@@ -1175,12 +1098,29 @@ def main():
                     for event in evenements_actuels:
                         evenements_text += f"{event.get('date', '')};{event.get('titre', '')};{event.get('description', '')}\n"
                     
+                    def on_events_change():
+                        data = load_data()
+                        if data and filiere_a_editer in data.get('filieres', {}):
+                            nouveaux_evenements = []
+                            for ligne in st.session_state[f"events_{filiere_a_editer}"].split('\n'):
+                                if ligne.strip():
+                                    parties = ligne.split(';')
+                                    if len(parties) >= 3:
+                                        nouveaux_evenements.append({
+                                            'date': parties[0].strip(),
+                                            'titre': parties[1].strip(),
+                                            'description': parties[2].strip()
+                                        })
+                            data['filieres'][filiere_a_editer]['evenements_recents'] = nouveaux_evenements
+                            save_data(data)
+                    
                     nouveaux_evenements_text = st.text_area(
                         "Événements récents (format: date;titre;description)",
                         value=evenements_text,
                         height=120,
                         help="Format: YYYY-MM-DD;Titre de l'événement;Description détaillée",
-                        key=f"events_{filiere_a_editer}"
+                        key=f"events_{filiere_a_editer}",
+                        on_change=on_events_change
                     )
                     
                     # Bouton de sauvegarde centré et toujours visible
@@ -1192,87 +1132,57 @@ def main():
                                                use_container_width=True,
                                                key="save_button_main")
                     
-                    # Marquer les changements seulement si les valeurs ont vraiment changé
-                    def check_if_changed():
-                        # Vérifier les usages phares
-                        usages_originaux = '\n'.join(filiere_data.get('usages_phares', []))
-                        usages_session = st.session_state.get(f"usages_{filiere_a_editer}", usages_originaux)
-                        
-                        # Vérifier les événements récents
-                        events_originaux = []
-                        for event in filiere_data.get('evenements_recents', []):
-                            events_originaux.append(f"{event.get('date', '')};{event.get('titre', '')};{event.get('description', '')}")
-                        events_text_original = '\n'.join(events_originaux)
-                        events_session = st.session_state.get(f"events_{filiere_a_editer}", events_text_original)
-                        
-                        return (
-                            st.session_state.get(f"ref_{filiere_a_editer}", "") != filiere_data.get('referent_metier', '') or
-                            st.session_state.get(f"refdelegues_{filiere_a_editer}", 0) != filiere_data.get('nombre_referents_delegues', 0) or
-                            st.session_state.get(f"collabIAGen_{filiere_a_editer}", 0) != filiere_data.get('nombre_collaborateurs_sensibilises', 0) or
-                            st.session_state.get(f"collabTotal_{filiere_a_editer}", 0) != filiere_data.get('nombre_collaborateurs_total', 0) or
-                            st.session_state.get(f"autonomie_{filiere_a_editer}", "") != filiere_data.get('niveau_autonomie', '') or
-                            st.session_state.get(f"fopp_{filiere_a_editer}", 0) != filiere_data.get('fopp_count', 0) or
-                            st.session_state.get(f"etat_{filiere_a_editer}", "") != filiere_data.get('etat_avancement', '') or
-                            st.session_state.get(f"gpt_{filiere_a_editer}", 0) != filiere_data.get('acces', {}).get('laposte_gpt', 0) or
-                            st.session_state.get(f"copilot_{filiere_a_editer}", 0) != filiere_data.get('acces', {}).get('copilot_licences', 0) or
-                            st.session_state.get(f"attention_{filiere_a_editer}", "") != filiere_data.get('point_attention', '') or
-                            usages_session != usages_originaux or
-                            events_session != events_text_original
-                        )
+                    # Message d'auto-sauvegarde temporaire
+                    if st.session_state.get("auto_save_message", False):
+                        current_time = datetime.now().timestamp()
+                        if current_time - st.session_state.get("auto_save_timestamp", 0) < 3:
+                            st.success("✅ Modification sauvegardée automatiquement!")
+                        else:
+                            st.session_state["auto_save_message"] = False
                     
-                    if check_if_changed():
-                        st.session_state.has_unsaved_changes = True
-                    else:
-                        # Réinitialiser si pas de changements réels
-                        st.session_state.has_unsaved_changes = False
-                    
-                    # Sauvegarde uniquement quand le bouton est cliqué
+                    # Sauvegarde manuelle uniquement quand le bouton est cliqué
                     if save_clicked:
-                            # Convertir les données
-                            nouveaux_usages = [usage.strip() for usage in nouveaux_usages_text.split('\n') if usage.strip()]
-                            
-                            nouveaux_evenements = []
-                            for ligne in nouveaux_evenements_text.split('\n'):
-                                if ligne.strip():
-                                    parties = ligne.split(';')
-                                    if len(parties) >= 3:
-                                        nouveaux_evenements.append({
-                                            'date': parties[0].strip(),
-                                            'titre': parties[1].strip(),
-                                            'description': parties[2].strip()
-                                        })
-                            
-                            # Mise à jour explicite de tous les champs dans la filière
-                            filiere = migrate_filiere_fields(filieres[filiere_a_editer])
-                            filiere['referent_metier'] = nouveau_referent
-                            filiere['nombre_referents_delegues'] = nouveau_nb_referents_delegues
-                            filiere['nombre_collaborateurs_sensibilises'] = nouveau_nb_collab_sensibilises
-                            filiere['nombre_collaborateurs_total'] = nouveau_nb_collab_total
-                            filiere['niveau_autonomie'] = nouveau_niveau_autonomie
-                            filiere['fopp_count'] = nouveau_fopp_count
-                            filiere['etat_avancement'] = nouvel_etat
-                            filiere['acces']['laposte_gpt'] = nouveau_laposte_gpt
-                            filiere['acces']['copilot_licences'] = nouvelles_licences
-                            filiere['point_attention'] = nouveau_point_attention
-                            filiere['usages_phares'] = nouveaux_usages
-                            filiere['evenements_recents'] = nouveaux_evenements
-                            
-                            # Sauvegarde
-                            if save_data(data):
-                                # Message de succès temporaire avec timestamp
-                                st.session_state["success_message"] = True
-                                st.session_state["success_timestamp"] = datetime.now().timestamp()
-                                
-                                # Marquer comme sauvegardé
-                                st.session_state.has_unsaved_changes = False
-                                
-                                st.rerun()
+                        # Convertir les données depuis les champs actuels
+                        nouveaux_usages = [usage.strip() for usage in nouveaux_usages_text.split('\n') if usage.strip()]
+                        
+                        nouveaux_evenements = []
+                        for ligne in nouveaux_evenements_text.split('\n'):
+                            if ligne.strip():
+                                parties = ligne.split(';')
+                                if len(parties) >= 3:
+                                    nouveaux_evenements.append({
+                                        'date': parties[0].strip(),
+                                        'titre': parties[1].strip(),
+                                        'description': parties[2].strip()
+                                    })
+                        
+                        # Mise à jour explicite de tous les champs dans la filière
+                        filiere = migrate_filiere_fields(filieres[filiere_a_editer])
+                        filiere['referent_metier'] = nouveau_referent
+                        filiere['nombre_referents_delegues'] = nouveau_nb_referents_delegues
+                        filiere['nombre_collaborateurs_sensibilises'] = nouveau_nb_collab_sensibilises
+                        filiere['nombre_collaborateurs_total'] = nouveau_nb_collab_total
+                        filiere['niveau_autonomie'] = nouveau_niveau_autonomie
+                        filiere['fopp_count'] = nouveau_fopp_count
+                        filiere['etat_avancement'] = nouvel_etat
+                        filiere['acces']['laposte_gpt'] = nouveau_laposte_gpt
+                        filiere['acces']['copilot_licences'] = nouvelles_licences
+                        filiere['point_attention'] = nouveau_point_attention
+                        filiere['usages_phares'] = nouveaux_usages
+                        filiere['evenements_recents'] = nouveaux_evenements
+                        
+                        # Sauvegarde
+                        if save_data(data):
+                            # Message de succès temporaire avec timestamp
+                            st.session_state["success_message"] = True
+                            st.session_state["success_timestamp"] = datetime.now().timestamp()
+                            st.rerun()
                     
-                    # Affichage du message de succès temporaire
+                    # Affichage du message de succès temporaire pour sauvegarde manuelle
                     if st.session_state.get("success_message", False):
                         current_time = datetime.now().timestamp()
                         if current_time - st.session_state.get("success_timestamp", 0) < 6:
-                            st.success("✅ Modifications sauvegardées avec succès!")
+                            st.success("✅ Toutes les modifications sauvegardées avec succès!")
                         else:
                             st.session_state["success_message"] = False
         else:
