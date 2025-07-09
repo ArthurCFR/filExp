@@ -22,7 +22,7 @@ st.set_page_config(
     page_title="Suivi des Filières Support - La Poste",
     page_icon="📊",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="collapsed"
 )
 
 GIST_ID = "e5f2784739d9e2784a3f067217b25e01"
