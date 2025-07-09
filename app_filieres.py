@@ -774,8 +774,12 @@ def main():
                 if not isinstance(text, str):
                     return str(text)
                 
-                # Mapping des émojis vers du texte
+                # Mapping des émojis vers du texte - patterns complets d'abord
                 emoji_mapping = {
+                    '🟢 AVANCÉ': 'AVANCE',
+                    '🔵 INTERMÉDIAIRE': 'INTERMEDIAIRE', 
+                    '🟡 EN ÉMERGENCE': 'EN_EMERGENCE',
+                    '🔴 À INITIER': 'A_INITIER',
                     '🟢': 'AVANCE',
                     '🔵': 'INTERMEDIAIRE', 
                     '🟡': 'EN_EMERGENCE',
