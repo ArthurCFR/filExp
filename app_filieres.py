@@ -462,20 +462,16 @@ def main():
         '#6f42c1'   # Violet
     ]
     
-    # Créer un mapping couleur fixe par département
+    # Créer un mapping couleur fixe par département pour TOUS les départements
     tous_departements = set()
     for key, filiere in filieres_filtrees.items():
         nom_filiere = filiere.get('nom', 'Filière inconnue')
-        laposte_gpt_count = filiere.get('acces', {}).get('laposte_gpt', 0)
-        copilot_count = filiere.get('acces', {}).get('copilot_licences', 0)
-        
-        if laposte_gpt_count > 0 or copilot_count > 0:
-            tous_departements.add(nom_filiere)
+        tous_departements.add(nom_filiere)  # Tous les départements, pas seulement ceux avec accès
     
     # Trier les départements pour un ordre cohérent
     departements_ordonnes = sorted(tous_departements)
     
-    # Créer un mapping département -> couleur
+    # Créer un mapping département -> couleur FIXE pour tous les départements
     couleur_par_departement = {}
     for i, dept in enumerate(departements_ordonnes):
         couleur_par_departement[dept] = app_colors[i % len(app_colors)]
