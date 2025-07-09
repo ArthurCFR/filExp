@@ -552,10 +552,11 @@ def main():
                 # Créer un mapping couleur direct pour Plotly
                 couleurs_laposte = [couleur_par_departement[dept] for dept in laposte_gpt_data.keys()]
                 
+                total_laposte_gpt = sum(laposte_gpt_data.values())
                 fig1 = px.pie(
                     values=list(laposte_gpt_data.values()),
                     names=list(laposte_gpt_data.keys()),
-                    title="🔑 Accès LaPoste GPT"
+                    title=f"🔑 Accès LaPoste GPT <i>({total_laposte_gpt} total)</i>"
                 )
                 
                 # Assigner les couleurs manuellement pour chaque segment
@@ -575,10 +576,11 @@ def main():
                 # Créer la séquence de couleurs pour matplotlib
                 couleurs_laposte = [couleur_par_departement[dept] for dept in laposte_gpt_data.keys()]
                 
+                total_laposte_gpt = sum(laposte_gpt_data.values())
                 fig, ax = plt.subplots(figsize=(6, 4))
                 ax.pie(list(laposte_gpt_data.values()), labels=list(laposte_gpt_data.keys()), 
                        autopct='%1.1f%%', colors=couleurs_laposte)
-                ax.set_title("🔑 Accès LaPoste GPT")
+                ax.set_title(f"🔑 Accès LaPoste GPT ({total_laposte_gpt} total)", style='italic')
                 st.pyplot(fig)
                 plt.close(fig)
             else:
@@ -602,10 +604,11 @@ def main():
                 # Créer un mapping couleur direct pour Plotly
                 couleurs_copilot = [couleur_par_departement[dept] for dept in copilot_data.keys()]
                 
+                total_copilot = sum(copilot_data.values())
                 fig2 = px.pie(
                     values=list(copilot_data.values()),
                     names=list(copilot_data.keys()),
-                    title="📋 Licences Copilot"
+                    title=f"📋 Licences Copilot <i>({total_copilot} total)</i>"
                 )
                 
                 # Assigner les couleurs manuellement pour chaque segment
@@ -625,10 +628,11 @@ def main():
                 # Créer la séquence de couleurs pour matplotlib
                 couleurs_copilot = [couleur_par_departement[dept] for dept in copilot_data.keys()]
                 
+                total_copilot = sum(copilot_data.values())
                 fig, ax = plt.subplots(figsize=(6, 4))
                 ax.pie(list(copilot_data.values()), labels=list(copilot_data.keys()), 
                        autopct='%1.1f%%', colors=couleurs_copilot)
-                ax.set_title("📋 Licences Copilot")
+                ax.set_title(f"📋 Licences Copilot ({total_copilot} total)", style='italic')
                 st.pyplot(fig)
                 plt.close(fig)
             else:
