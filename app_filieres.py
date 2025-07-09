@@ -654,11 +654,11 @@ def main():
                 hide_index=True
             )
             # Export CSV
-            csv = df_sorted.to_csv(index=False).encode('utf-8')
+            csv = df_sorted.to_csv(index=False, sep=';', encoding='utf-8')
             st.download_button(
                 label="📥 Exporter en CSV",
                 data=csv,
-                file_name='filiere_tableau.csv',
+                file_name='filieres_tableau.csv',
                 mime='text/csv'
             )
     
