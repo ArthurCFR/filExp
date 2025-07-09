@@ -72,6 +72,19 @@ def display_filiere_card(filiere_key, filiere_data, etats_config):
             </div>""", 
             unsafe_allow_html=True
         )
+        # Niveau d'autonomie en haut, sous le badge d'état
+        icone_autonomie = {
+            "Besoin d'accompagnement faible": "🟢",
+            "Besoin d'accompagnement modéré": "🟡",
+            "Besoin d'accompagnement fort": "🟠",
+            "Besoin d'accompagnement très fort": "🔴"
+        }
+        niveau_autonomie = filiere_data.get('niveau_autonomie', 'Non renseigné')
+        icone = icone_autonomie.get(niveau_autonomie, "❔")
+        st.markdown(
+            f"""<div style='margin: 8px 0 0 0; font-size: 1.2em;'><span>{icone}</span> <span style='font-weight:bold;'>{niveau_autonomie}</span></div>""",
+            unsafe_allow_html=True
+        )
         
         # Ligne de séparation
         st.markdown("---")
@@ -97,8 +110,8 @@ def display_filiere_card(filiere_key, filiere_data, etats_config):
                 border-radius: 5px; 
                 border-left: 3px solid {couleur_bordure};
                 margin-bottom: 10px;'>
-                <strong>📈 Niveau d'autonomie:</strong><br/>
-                {filiere_data.get('niveau_autonomie', 'Non renseigné')}
+                <strong>👥 Nombre de collaborateurs sensibilisés à l'IAGen:</strong><br/>
+                {filiere_data.get('nombre_collaborateurs_sensibilises', 0)}
                 </div>""",
                 unsafe_allow_html=True
             )
@@ -471,6 +484,14 @@ def main():
                             key=f"ref_{filiere_a_editer}"
                         )
                         
+                        # Nombre de collaborateurs sensibilisés à l'IAGen
+                        nouveau_nb_collab_sensibilises = st.number_input(
+                            "Nombre de collaborateurs sensibilisés à l'IAGen",
+                            min_value=0,
+                            value=filiere_data.get('nombre_collaborateurs_sensibilises', 0),
+                            key=f"collabIAGen_{filiere_a_editer}"
+                        )
+                        
                         # Nombre de référents métier délégués
                         nouveau_nb_referents_delegues = st.number_input(
                             "Nombre de référents métier délégués",
@@ -597,6 +618,7 @@ def main():
                             
                             # Mise à jour
                             filieres[filiere_a_editer]['referent_metier'] = nouveau_referent
+                            filieres[filiere_a_editer]['nombre_collaborateurs_sensibilises'] = nouveau_nb_collab_sensibilises
                             filieres[filiere_a_editer]['nombre_referents_delegues'] = nouveau_nb_referents_delegues
                             filieres[filiere_a_editer]['niveau_autonomie'] = nouveau_niveau_autonomie
                             filieres[filiere_a_editer]['fopp_count'] = nouveau_fopp_count
