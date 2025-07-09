@@ -257,11 +257,11 @@ def display_filiere_card(filiere_key, filiere_data, etats_config):
                 unsafe_allow_html=True
             )
         
-        # Point d'attention
+        # Points d'attention
         point_attention = filiere_data.get('point_attention', '')
         if point_attention and point_attention != 'Aucun point d\'attention spécifique':
             st.markdown("---")
-            st.markdown("<strong style='font-size: 0.9em;'>⚠️ Point d'attention:</strong>", unsafe_allow_html=True)
+            st.markdown("<strong style='font-size: 0.9em;'>⚠️ Points d'attention:</strong>", unsafe_allow_html=True)
             # Traiter chaque ligne séparément
             for ligne in point_attention.split('\n'):
                 if ligne.strip():
@@ -276,6 +276,7 @@ def display_filiere_card(filiere_key, filiere_data, etats_config):
                         </div>""", 
                         unsafe_allow_html=True
                     )
+            st.markdown("---")
         
         # Usages phares
         usages = filiere_data.get('usages_phares', [])
