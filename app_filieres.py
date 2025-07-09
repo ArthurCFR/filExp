@@ -31,41 +31,108 @@ def display_filiere_card(filiere_key, filiere_data, etats_config):
     etat = filiere_data.get('etat_avancement', 'initialisation')
     etat_info = etats_config.get(etat, {})
     etat_label = etat_info.get('label', 'État inconnu')
+    couleur_fond = etat_info.get('couleur', '#f8f9fa')
+    couleur_bordure = etat_info.get('couleur_bordure', '#dee2e6')
     
     # Utiliser le container natif de Streamlit avec bordure
     with st.container(border=True):
+        # Barre de couleur en haut pour indiquer l'état
+        st.markdown(
+            f"""<div style='background-color: {couleur_bordure}; 
+            margin: -1rem -1rem 1rem -1rem; 
+            padding: 0.5rem; 
+            border-radius: 5px 5px 0 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);'></div>""", 
+            unsafe_allow_html=True
+        )
+        
         # Titre avec icône
         st.subheader(f"{filiere_data.get('icon', '📁')} {filiere_data.get('nom', 'Filière')}")
         
-        # Badge d'état
-        st.caption(f"🎯 État: **{etat_label}**")
+        # Badge d'état coloré
+        st.markdown(
+            f"""<div style='display: inline-block; 
+            background-color: {couleur_bordure}; 
+            color: white; 
+            padding: 8px 16px; 
+            border-radius: 20px; 
+            font-weight: bold; 
+            margin: 10px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);'>
+            🎯 {etat_label}
+            </div>""", 
+            unsafe_allow_html=True
+        )
         
         # Ligne de séparation
         st.markdown("---")
         
-        # Informations en colonnes
+        # Informations en colonnes avec fond légèrement coloré
         col1, col2 = st.columns(2)
         
         with col1:
-            st.markdown("**👤 Référent métier:**")
-            st.text(filiere_data.get('referent_metier', 'Non défini'))
+            st.markdown(
+                f"""<div style='background-color: {couleur_fond}20; 
+                padding: 10px; 
+                border-radius: 5px; 
+                border-left: 3px solid {couleur_bordure};
+                margin-bottom: 10px;'>
+                <strong>👤 Référent métier:</strong><br/>
+                {filiere_data.get('referent_metier', 'Non défini')}
+                </div>""", 
+                unsafe_allow_html=True
+            )
             
-            st.markdown("**🧪 Nombre de testeurs:**")
-            st.text(str(filiere_data.get('nombre_testeurs', 0)))
+            st.markdown(
+                f"""<div style='background-color: {couleur_fond}20; 
+                padding: 10px; 
+                border-radius: 5px; 
+                border-left: 3px solid {couleur_bordure};'>
+                <strong>🧪 Nombre de testeurs:</strong><br/>
+                {filiere_data.get('nombre_testeurs', 0)}
+                </div>""", 
+                unsafe_allow_html=True
+            )
         
         with col2:
-            st.markdown("**🔑 Accès LaPoste GPT:**")
-            st.text(str(filiere_data.get('acces', {}).get('laposte_gpt', 0)))
+            st.markdown(
+                f"""<div style='background-color: {couleur_fond}20; 
+                padding: 10px; 
+                border-radius: 5px; 
+                border-left: 3px solid {couleur_bordure};
+                margin-bottom: 10px;'>
+                <strong>🔑 Accès LaPoste GPT:</strong><br/>
+                {filiere_data.get('acces', {}).get('laposte_gpt', 0)}
+                </div>""", 
+                unsafe_allow_html=True
+            )
             
-            st.markdown("**📋 Licences Copilot:**")
-            st.text(str(filiere_data.get('acces', {}).get('copilot_licences', 0)))
+            st.markdown(
+                f"""<div style='background-color: {couleur_fond}20; 
+                padding: 10px; 
+                border-radius: 5px; 
+                border-left: 3px solid {couleur_bordure};'>
+                <strong>📋 Licences Copilot:</strong><br/>
+                {filiere_data.get('acces', {}).get('copilot_licences', 0)}
+                </div>""", 
+                unsafe_allow_html=True
+            )
         
-        # Point d'attention
+        # Point d'attention avec style coloré
         point_attention = filiere_data.get('point_attention', '')
         if point_attention and point_attention != 'Aucun point d\'attention spécifique':
             st.markdown("---")
-            st.markdown("**⚠️ Point d'attention:**")
-            st.info(point_attention)
+            st.markdown(
+                f"""<div style='background-color: #fff3cd; 
+                border-left: 4px solid #ffc107; 
+                padding: 15px; 
+                border-radius: 5px;
+                margin: 10px 0;'>
+                <strong>⚠️ Point d'attention:</strong><br/>
+                {point_attention}
+                </div>""", 
+                unsafe_allow_html=True
+            )
         
         # Usage(s) phare(s)
         usages = filiere_data.get('usages_phares', [])
@@ -73,7 +140,15 @@ def display_filiere_card(filiere_key, filiere_data, etats_config):
             st.markdown("---")
             st.markdown("**🌟 Usage(s) phare(s):**")
             for usage in usages:
-                st.markdown(f"- {usage}")
+                st.markdown(
+                    f"""<div style='background-color: {couleur_fond}10; 
+                    padding: 5px 10px; 
+                    border-radius: 5px; 
+                    margin: 5px 0;'>
+                    • {usage}
+                    </div>""", 
+                    unsafe_allow_html=True
+                )
         
         # Événements récents dans un expander
         st.markdown("---")
@@ -83,8 +158,15 @@ def display_filiere_card(filiere_key, filiere_data, etats_config):
                 for i, event in enumerate(evenements):
                     if i > 0:
                         st.markdown("---")
-                    st.markdown(f"**{event.get('date', 'Date inconnue')}** - {event.get('titre', 'Sans titre')}")
-                    st.text(event.get('description', 'Pas de description'))
+                    st.markdown(
+                        f"""<div style='background-color: #f8f9fa; 
+                        padding: 10px; 
+                        border-radius: 5px;'>
+                        <strong>{event.get('date', 'Date inconnue')}</strong> - {event.get('titre', 'Sans titre')}<br/>
+                        <span style='color: #666;'>{event.get('description', 'Pas de description')}</span>
+                        </div>""", 
+                        unsafe_allow_html=True
+                    )
             else:
                 st.text("Aucun événement récent")
 
