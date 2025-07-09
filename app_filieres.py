@@ -655,11 +655,47 @@ def main():
     # Simple tracking des modifications non sauvegardées
     has_unsaved_changes = st.session_state.get("has_unsaved_changes", False)
     
+    # Gestion des dialogues de confirmation avant le rendu du radio button
+    if st.session_state.get("show_navigation_dialog", False):
+        st.warning("⚠️ Continuer sans enregistrer (toute modification sera perdue) ?")
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("Oui", key="confirm_nav_lose_changes_top"):
+                # Naviguer sans sauvegarder
+                if st.session_state.navigation_pending == "change_view":
+                    # Changer de vue - pas besoin de modification du radio, on laisse faire
+                    st.session_state.mode_precedent = st.session_state.mode_target
+                
+                st.session_state.has_unsaved_changes = False
+                st.session_state.show_navigation_dialog = False
+                st.session_state.navigation_pending = None
+                st.rerun()
+        
+        with col2:
+            if st.button("Non", key="cancel_nav_lose_changes_top"):
+                # Annuler - rester en mode édition
+                if st.session_state.navigation_pending == "change_view":
+                    # Forcer le retour à Édition pour le prochain rendu
+                    st.session_state["mode_affichage_radio"] = "Édition"
+                
+                st.session_state.show_navigation_dialog = False
+                st.session_state.navigation_pending = None
+                st.rerun()
+    
+    # Déterminer le mode d'affichage à utiliser
+    if st.session_state.get("show_navigation_dialog", False) and st.session_state.get("navigation_pending") == "change_view":
+        # En cours de dialogue pour changement de vue - rester en édition
+        mode_affichage_radio_value = "Édition"
+    else:
+        mode_affichage_radio_value = st.session_state.get("mode_affichage_radio", "Cartes")
+    
     mode_affichage = st.radio(
         "Mode d'affichage",
         ["Cartes", "Tableau", "Édition"],
         horizontal=True,
-        key="mode_affichage_radio"
+        key="mode_affichage_radio",
+        index=["Cartes", "Tableau", "Édition"].index(mode_affichage_radio_value)
     )
     
     # Vérifier si on quitte l'édition avec des modifications non sauvegardées
@@ -941,8 +977,8 @@ def main():
                         st.session_state.filiere_editee_index = (st.session_state.filiere_editee_index + 1) % len(filieres_keys)
                         st.rerun()
             
-            # Dialog de confirmation pour navigation ET changement de vue
-            if st.session_state.get("show_navigation_dialog", False):
+            # Dialog de confirmation pour navigation de filières uniquement
+            if st.session_state.get("show_navigation_dialog", False) and st.session_state.get("navigation_pending") in ["prev", "next"]:
                 st.warning("⚠️ Continuer sans enregistrer (toute modification sera perdue) ?")
                 
                 col1, col2 = st.columns(2)
@@ -953,10 +989,6 @@ def main():
                             st.session_state.filiere_editee_index = (st.session_state.filiere_editee_index - 1) % len(filieres_keys)
                         elif st.session_state.navigation_pending == "next":
                             st.session_state.filiere_editee_index = (st.session_state.filiere_editee_index + 1) % len(filieres_keys)
-                        elif st.session_state.navigation_pending == "change_view":
-                            # Changer de vue
-                            st.session_state.mode_precedent = st.session_state.mode_target
-                            st.session_state["mode_affichage_radio"] = st.session_state.mode_target
                         
                         st.session_state.has_unsaved_changes = False
                         st.session_state.show_navigation_dialog = False
@@ -965,10 +997,6 @@ def main():
                 
                 with col2:
                     if st.button("Non", key="cancel_nav_lose_changes"):
-                        # Si c'était un changement de vue, remettre le radio button à "Édition"
-                        if st.session_state.navigation_pending == "change_view":
-                            st.session_state["mode_affichage_radio"] = "Édition"
-                        
                         st.session_state.show_navigation_dialog = False
                         st.session_state.navigation_pending = None
                         st.rerun()
