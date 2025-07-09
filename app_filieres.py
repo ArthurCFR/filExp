@@ -30,7 +30,16 @@ def display_filiere_card(filiere_key, filiere_data, etats_config):
     """Affiche une carte pour une filière dans un container Streamlit natif"""
     etat = filiere_data.get('etat_avancement', 'initialisation')
     etat_info = etats_config.get(etat, {})
-    etat_label = etat_info.get('label', 'État inconnu')
+    
+    # Mapping des états avec les nouveaux textes
+    etats_labels_custom = {
+        'prompts_deployes': 'AVANCÉ',
+        'tests_realises': 'INTERMÉDIAIRE',
+        'ateliers_test_planifies': 'NAISSANT',
+        'initialisation': 'À ENGAGER'
+    }
+    
+    etat_label = etats_labels_custom.get(etat, etat_info.get('label', 'État inconnu'))
     couleur_fond = etat_info.get('couleur', '#f8f9fa')
     couleur_bordure = etat_info.get('couleur_bordure', '#dee2e6')
     
@@ -189,11 +198,18 @@ def main():
     st.sidebar.header("🔍 Filtres")
     
     # Filtre par état d'avancement
+    etats_labels_custom = {
+        'prompts_deployes': 'AVANCÉ',
+        'tests_realises': 'INTERMÉDIAIRE',
+        'ateliers_test_planifies': 'NAISSANT',
+        'initialisation': 'À ENGAGER'
+    }
+    
     etats_disponibles = ['Tous'] + list(etats_config.keys())
     filtre_etat = st.sidebar.selectbox(
         "État d'avancement",
         etats_disponibles,
-        format_func=lambda x: "Tous" if x == "Tous" else etats_config.get(x, {}).get('label', x)
+        format_func=lambda x: "Tous" if x == "Tous" else etats_labels_custom.get(x, etats_config.get(x, {}).get('label', x))
     )
     
     # Filtre par référent métier
@@ -227,14 +243,26 @@ def main():
         etat = filiere.get('etat_avancement', 'initialisation')
         etat_counts[etat] = etat_counts.get(etat, 0) + 1
     
+    # Mapping des états avec les nouveaux textes
+    etats_labels_custom = {
+        'prompts_deployes': 'AVANCÉ - Les COSUI sont réguliers et les expérimentations en cours',
+        'tests_realises': 'INTERMÉDIAIRE - Échanges en cours avec les référents métiers - premiers COSUI et/ou quelques expérimentations en démarrage',
+        'ateliers_test_planifies': 'NAISSANT - Des opportunités IAGen ont été identifiées - pas de COSUI ni d\'expérimentation en cours',
+        'initialisation': 'À ENGAGER - Filière à engager (pas ou peu de FOPP, contact à initier avec un référent métier)'
+    }
+    
     cols = st.columns(len(etats_config))
     for i, (etat_key, etat_info) in enumerate(etats_config.items()):
         with cols[i]:
             count = etat_counts.get(etat_key, 0)
+            # Utiliser le label personnalisé s'il existe
+            label = etats_labels_custom.get(etat_key, etat_info.get('label', etat_key))
+            # Pour l'affichage dans la métrique, on peut raccourcir
+            short_label = label.split(' - ')[0] if ' - ' in label else label
             st.metric(
-                etat_info.get('label', etat_key),
+                short_label,
                 count,
-                help=etat_info.get('description', '')
+                help=label  # Le texte complet apparaît au survol
             )
     
     # Filtrage des filières
@@ -340,11 +368,18 @@ def main():
                         )
                         
                         # État d'avancement
+                        etats_labels_custom = {
+                            'prompts_deployes': 'AVANCÉ',
+                            'tests_realises': 'INTERMÉDIAIRE',
+                            'ateliers_test_planifies': 'NAISSANT',
+                            'initialisation': 'À ENGAGER'
+                        }
+                        
                         nouvel_etat = st.selectbox(
                             "État d'avancement",
                             list(etats_config.keys()),
                             index=list(etats_config.keys()).index(filiere_data.get('etat_avancement', 'initialisation')),
-                            format_func=lambda x: etats_config.get(x, {}).get('label', x),
+                            format_func=lambda x: etats_labels_custom.get(x, etats_config.get(x, {}).get('label', x)),
                             key=f"etat_{filiere_a_editer}"
                         )
                     
