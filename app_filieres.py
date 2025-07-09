@@ -665,31 +665,13 @@ def main():
     # Vérifier si on quitte l'édition avec des modifications non sauvegardées
     mode_precedent = st.session_state.get("mode_precedent", "Cartes")
     if mode_precedent == "Édition" and mode_affichage != "Édition" and has_unsaved_changes:
-        st.session_state.show_unsaved_dialog = True
+        st.session_state.show_navigation_dialog = True
+        st.session_state.navigation_pending = "change_view"
         st.session_state.mode_target = mode_affichage
         # Revenir au mode précédent temporairement
         mode_affichage = "Édition"
-    
-    # Dialog simple pour modifications non sauvegardées
-    if st.session_state.get("show_unsaved_dialog", False):
-        st.warning("⚠️ Continuer sans enregistrer (toute modification sera perdue) ?")
-        
-        col1, col2 = st.columns(2)
-        with col1:
-            if st.button("Oui", key="confirm_lose_changes"):
-                st.session_state.has_unsaved_changes = False
-                st.session_state.show_unsaved_dialog = False
-                st.session_state.mode_precedent = st.session_state.mode_target
-                st.rerun()
-        
-        with col2:
-            if st.button("Non", key="cancel_lose_changes"):
-                st.session_state.show_unsaved_dialog = False
-                st.session_state.mode_target = None
-                st.rerun()
-    
-    # Mettre à jour le mode précédent seulement si pas de dialog actif
-    if not st.session_state.get("show_unsaved_dialog", False):
+    else:
+        # Mettre à jour le mode précédent seulement si pas de dialogue en cours
         st.session_state.mode_precedent = mode_affichage
     
     
@@ -959,7 +941,7 @@ def main():
                         st.session_state.filiere_editee_index = (st.session_state.filiere_editee_index + 1) % len(filieres_keys)
                         st.rerun()
             
-            # Dialog de confirmation pour navigation
+            # Dialog de confirmation pour navigation ET changement de vue
             if st.session_state.get("show_navigation_dialog", False):
                 st.warning("⚠️ Continuer sans enregistrer (toute modification sera perdue) ?")
                 
@@ -971,6 +953,10 @@ def main():
                             st.session_state.filiere_editee_index = (st.session_state.filiere_editee_index - 1) % len(filieres_keys)
                         elif st.session_state.navigation_pending == "next":
                             st.session_state.filiere_editee_index = (st.session_state.filiere_editee_index + 1) % len(filieres_keys)
+                        elif st.session_state.navigation_pending == "change_view":
+                            # Changer de vue
+                            st.session_state.mode_precedent = st.session_state.mode_target
+                            st.session_state["mode_affichage_radio"] = st.session_state.mode_target
                         
                         st.session_state.has_unsaved_changes = False
                         st.session_state.show_navigation_dialog = False
