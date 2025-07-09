@@ -1230,13 +1230,17 @@ def main():
                         key=f"events_{filiere_a_editer}"
                     )
                     
-                    # Détection des modifications pour le bouton flottant
-                    modifications_detectees = detecter_changements(filiere_a_editer, filiere_data)
+                    # Bouton de sauvegarde centré et toujours visible
+                    st.markdown("---")
+                    col1, col2, col3 = st.columns([1, 1, 1])
+                    with col2:
+                        save_clicked = st.button("💾 Sauvegarder les modifications", 
+                                               type="primary", 
+                                               use_container_width=True,
+                                               key="save_button_main")
                     
-                    # Bouton de sauvegarde (invisible car remplacé par le flottant)
-                    # Garder la logique de sauvegarde mais sans affichage visible
+                    # Logique de sauvegarde
                     force_save = st.session_state.get("force_save", False) or st.session_state.get("force_save_global", False)
-                    save_clicked = st.session_state.get("floating_save_clicked", False)
                     
                     if force_save or save_clicked:
                             # Convertir les données
@@ -1275,7 +1279,6 @@ def main():
                                 st.session_state["success_timestamp"] = datetime.now().timestamp()
                                 
                                 # Nettoyer les flags de sauvegarde
-                                st.session_state["floating_save_clicked"] = False
                                 
                                 # Nettoyer les variables de modification pour éviter la détection continue
                                 keys_to_clean = []
@@ -1314,82 +1317,6 @@ def main():
         else:
             st.info("Aucune filière ne correspond aux filtres sélectionnés.")
     
-    # Bouton flottant de sauvegarde (uniquement en mode édition)
-    if mode_affichage == "Édition" and filieres_filtrees:
-        # Vérifier s'il y a des modifications
-        filiere_a_editer = st.session_state.get("filiere_selectbox")
-        if filiere_a_editer and filiere_a_editer in filieres:
-            filiere_data = filieres[filiere_a_editer]
-            modifications_detectees = detecter_changements(filiere_a_editer, filiere_data)
-            
-            if modifications_detectees:
-                # CSS pour le bouton flottant
-                st.markdown("""
-                <style>
-                .floating-save-btn {
-                    position: fixed;
-                    bottom: 20px;
-                    right: 20px;
-                    z-index: 999;
-                    background-color: #ff4b4b;
-                    color: white;
-                    border: none;
-                    border-radius: 50px;
-                    padding: 15px 25px;
-                    font-size: 16px;
-                    font-weight: bold;
-                    box-shadow: 0 4px 12px rgba(255, 75, 75, 0.3);
-                    cursor: pointer;
-                    animation: pulse 2s infinite;
-                }
-                
-                .floating-save-btn:hover {
-                    background-color: #ff3333;
-                    transform: translateY(-2px);
-                    box-shadow: 0 6px 16px rgba(255, 75, 75, 0.4);
-                }
-                
-                @keyframes pulse {
-                    0% { box-shadow: 0 4px 12px rgba(255, 75, 75, 0.3); }
-                    50% { box-shadow: 0 6px 20px rgba(255, 75, 75, 0.5); }
-                    100% { box-shadow: 0 4px 12px rgba(255, 75, 75, 0.3); }
-                }
-                </style>
-                """, unsafe_allow_html=True)
-                
-                # Container pour le bouton flottant (en bas de page)
-                floating_container = st.container()
-                with floating_container:
-                    # Bouton invisible mais cliquable
-                    if st.button("💾 Sauvegarder les modifications", 
-                               key="floating_save_button",
-                               type="primary"):
-                        st.session_state["floating_save_clicked"] = True
-                        st.rerun()
-                
-                # JavaScript pour créer le vrai bouton flottant
-                st.markdown("""
-                <script>
-                // Créer le bouton flottant
-                if (!document.querySelector('.floating-save-btn')) {
-                    const floatingBtn = document.createElement('button');
-                    floatingBtn.innerHTML = '💾 Sauvegarder';
-                    floatingBtn.className = 'floating-save-btn';
-                    floatingBtn.onclick = function() {
-                        // Déclencher le clic sur le bouton Streamlit caché
-                        const hiddenBtn = document.querySelector('[data-testid="baseButton-primary"]');
-                        if (hiddenBtn) hiddenBtn.click();
-                    };
-                    document.body.appendChild(floatingBtn);
-                }
-                
-                // Nettoyer le bouton si on quitte le mode édition
-                window.addEventListener('beforeunload', function() {
-                    const btn = document.querySelector('.floating-save-btn');
-                    if (btn) btn.remove();
-                });
-                </script>
-                """, unsafe_allow_html=True)
     
     # Footer
     st.markdown("---")
