@@ -257,7 +257,7 @@ def display_filiere_card(filiere_key, filiere_data, etats_config):
                 unsafe_allow_html=True
             )
         
-        # Points d'attention
+        # Point d'attention
         point_attention = filiere_data.get('point_attention', '')
         if point_attention and point_attention != 'Aucun point d\'attention spécifique':
             st.markdown("---")
@@ -276,7 +276,6 @@ def display_filiere_card(filiere_key, filiere_data, etats_config):
                         </div>""", 
                         unsafe_allow_html=True
                     )
-            st.markdown("---")
         
         # Usages phares
         usages = filiere_data.get('usages_phares', [])
@@ -1075,10 +1074,10 @@ def main():
                             key=f"copilot_{filiere_a_editer}"
                         )
                     
-                    # Points d'attention
+                    # Point d'attention
                     st.markdown("**⚠️ Points d'attention**")
                     nouveau_point_attention = st.text_area(
-                        "Points d'attention",
+                        "Points d'attention (un par ligne)",
                         value=filiere_data.get('point_attention', ''),
                         height=80,
                         placeholder="Décrivez les points nécessitant une attention particulière...",
