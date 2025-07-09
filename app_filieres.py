@@ -652,12 +652,85 @@ def main():
     st.header("🗂️ Fiches d'avancement des filières")
     st.write(f"*{len(filieres_filtrees)} filière(s) affichée(s)*")
     
-    # Mode d'affichage
+    # Mode d'affichage avec détection de changements
+    mode_precedent = st.session_state.get("mode_precedent", "Cartes")
+    
+    # Fonction pour détecter les changements globaux
+    def detecter_changements_globaux():
+        """Détecte si des changements ont été faits dans les champs d'édition"""
+        if st.session_state.get("mode_precedent") != "Édition":
+            return False
+        
+        # Vérifier s'il y a des filières éditées
+        filieres_editees = []
+        for key in st.session_state.keys():
+            if isinstance(key, str) and (key.startswith("etat_") or key.startswith("ref_") or key.startswith("attention_")):
+                filiere_key = key.split("_", 1)[1]
+                if filiere_key in filieres and filiere_key not in filieres_editees:
+                    filieres_editees.append(filiere_key)
+        
+        # Vérifier chaque filière éditée
+        for filiere_key in filieres_editees:
+            filiere_data = filieres[filiere_key]
+            if (st.session_state.get(f"ref_{filiere_key}", "") != filiere_data.get('referent_metier', '') or
+                st.session_state.get(f"refdelegues_{filiere_key}", 0) != filiere_data.get('nombre_referents_delegues', 0) or
+                st.session_state.get(f"collabIAGen_{filiere_key}", 0) != filiere_data.get('nombre_collaborateurs_sensibilises', 0) or
+                st.session_state.get(f"collabTotal_{filiere_key}", 0) != filiere_data.get('nombre_collaborateurs_total', 0) or
+                st.session_state.get(f"autonomie_{filiere_key}", "") != filiere_data.get('niveau_autonomie', '') or
+                st.session_state.get(f"fopp_{filiere_key}", 0) != filiere_data.get('fopp_count', 0) or
+                st.session_state.get(f"etat_{filiere_key}", "") != filiere_data.get('etat_avancement', '') or
+                st.session_state.get(f"gpt_{filiere_key}", 0) != filiere_data.get('acces', {}).get('laposte_gpt', 0) or
+                st.session_state.get(f"copilot_{filiere_key}", 0) != filiere_data.get('acces', {}).get('copilot_licences', 0) or
+                st.session_state.get(f"attention_{filiere_key}", "") != filiere_data.get('point_attention', '')):
+                return True
+        return False
+    
     mode_affichage = st.radio(
         "Mode d'affichage",
         ["Cartes", "Tableau", "Édition"],
-        horizontal=True
+        horizontal=True,
+        key="mode_affichage_radio"
     )
+    
+    # Vérifier si on change de vue avec des modifications non sauvegardées
+    if mode_precedent == "Édition" and mode_affichage != "Édition" and detecter_changements_globaux():
+        st.session_state.show_mode_change_dialog = True
+        st.session_state.mode_target = mode_affichage
+        # Revenir au mode précédent temporairement
+        mode_affichage = "Édition"
+    
+    # Dialog de confirmation pour changement de mode
+    if st.session_state.get("show_mode_change_dialog", False):
+        st.warning("⚠️ Vous avez des modifications non sauvegardées")
+        
+        col1, col2, col3 = st.columns([1, 1, 1])
+        with col1:
+            if st.button("💾 Sauvegarder et continuer", key="save_and_change_mode"):
+                st.session_state.force_save_global = True
+                st.session_state.show_mode_change_dialog = False
+                st.rerun()
+        
+        with col2:
+            if st.button("🗑️ Ignorer les modifications", key="ignore_and_change_mode"):
+                # Nettoyer les changements du session_state
+                keys_to_remove = []
+                for key in st.session_state.keys():
+                    if isinstance(key, str) and any(key.startswith(prefix) for prefix in ["etat_", "ref_", "attention_", "refdelegues_", "collabIAGen_", "collabTotal_", "autonomie_", "fopp_", "gpt_", "copilot_"]):
+                        keys_to_remove.append(key)
+                for key in keys_to_remove:
+                    del st.session_state[key]
+                
+                st.session_state.show_mode_change_dialog = False
+                st.session_state.mode_precedent = st.session_state.mode_target
+                st.rerun()
+        
+        with col3:
+            if st.button("❌ Rester en édition", key="cancel_mode_change"):
+                st.session_state.show_mode_change_dialog = False
+                st.rerun()
+    
+    # Mettre à jour le mode précédent
+    st.session_state.mode_precedent = mode_affichage
     
     if mode_affichage == "Édition":
         st.info("📝 Mode édition activé - Vos modifications seront sauvegardées automatiquement")
@@ -1159,10 +1232,15 @@ def main():
                         key=f"events_{filiere_a_editer}"
                     )
                     
-                    # Bouton de sauvegarde
-                    col1, col2, col3 = st.columns([1, 1, 1])
-                    with col2:
-                        if st.button("💾 Sauvegarder les modifications", type="primary", use_container_width=True) or st.session_state.get("force_save", False):
+                    # Détection des modifications pour le bouton flottant
+                    modifications_detectees = detecter_changements(filiere_a_editer, filiere_data)
+                    
+                    # Bouton de sauvegarde (invisible car remplacé par le flottant)
+                    # Garder la logique de sauvegarde mais sans affichage visible
+                    force_save = st.session_state.get("force_save", False) or st.session_state.get("force_save_global", False)
+                    save_clicked = st.session_state.get("floating_save_clicked", False)
+                    
+                    if force_save or save_clicked:
                             # Convertir les données
                             nouveaux_usages = [usage.strip() for usage in nouveaux_usages_text.split('\n') if usage.strip()]
                             
@@ -1198,6 +1276,13 @@ def main():
                                 st.session_state["success_message"] = True
                                 st.session_state["success_timestamp"] = datetime.now().timestamp()
                                 
+                                # Nettoyer les flags de sauvegarde
+                                st.session_state["floating_save_clicked"] = False
+                                if st.session_state.get("force_save_global", False):
+                                    st.session_state.force_save_global = False
+                                    # Changer de mode après sauvegarde globale
+                                    st.session_state.mode_precedent = st.session_state.get("mode_target", "Cartes")
+                                
                                 # Si c'était une sauvegarde forcée, naviguer après
                                 if st.session_state.get("force_save", False):
                                     st.session_state.force_save = False
@@ -1218,6 +1303,83 @@ def main():
                             st.session_state["success_message"] = False
         else:
             st.info("Aucune filière ne correspond aux filtres sélectionnés.")
+    
+    # Bouton flottant de sauvegarde (uniquement en mode édition)
+    if mode_affichage == "Édition" and filieres_filtrees:
+        # Vérifier s'il y a des modifications
+        filiere_a_editer = st.session_state.get("filiere_selectbox")
+        if filiere_a_editer and filiere_a_editer in filieres:
+            filiere_data = filieres[filiere_a_editer]
+            modifications_detectees = detecter_changements(filiere_a_editer, filiere_data)
+            
+            if modifications_detectees:
+                # CSS pour le bouton flottant
+                st.markdown("""
+                <style>
+                .floating-save-btn {
+                    position: fixed;
+                    bottom: 20px;
+                    right: 20px;
+                    z-index: 999;
+                    background-color: #ff4b4b;
+                    color: white;
+                    border: none;
+                    border-radius: 50px;
+                    padding: 15px 25px;
+                    font-size: 16px;
+                    font-weight: bold;
+                    box-shadow: 0 4px 12px rgba(255, 75, 75, 0.3);
+                    cursor: pointer;
+                    animation: pulse 2s infinite;
+                }
+                
+                .floating-save-btn:hover {
+                    background-color: #ff3333;
+                    transform: translateY(-2px);
+                    box-shadow: 0 6px 16px rgba(255, 75, 75, 0.4);
+                }
+                
+                @keyframes pulse {
+                    0% { box-shadow: 0 4px 12px rgba(255, 75, 75, 0.3); }
+                    50% { box-shadow: 0 6px 20px rgba(255, 75, 75, 0.5); }
+                    100% { box-shadow: 0 4px 12px rgba(255, 75, 75, 0.3); }
+                }
+                </style>
+                """, unsafe_allow_html=True)
+                
+                # Container pour le bouton flottant (en bas de page)
+                floating_container = st.container()
+                with floating_container:
+                    # Bouton invisible mais cliquable
+                    if st.button("💾 Sauvegarder les modifications", 
+                               key="floating_save_button",
+                               type="primary"):
+                        st.session_state["floating_save_clicked"] = True
+                        st.rerun()
+                
+                # JavaScript pour créer le vrai bouton flottant
+                st.markdown("""
+                <script>
+                // Créer le bouton flottant
+                if (!document.querySelector('.floating-save-btn')) {
+                    const floatingBtn = document.createElement('button');
+                    floatingBtn.innerHTML = '💾 Sauvegarder';
+                    floatingBtn.className = 'floating-save-btn';
+                    floatingBtn.onclick = function() {
+                        // Déclencher le clic sur le bouton Streamlit caché
+                        const hiddenBtn = document.querySelector('[data-testid="baseButton-primary"]');
+                        if (hiddenBtn) hiddenBtn.click();
+                    };
+                    document.body.appendChild(floatingBtn);
+                }
+                
+                // Nettoyer le bouton si on quitte le mode édition
+                window.addEventListener('beforeunload', function() {
+                    const btn = document.querySelector('.floating-save-btn');
+                    if (btn) btn.remove();
+                });
+                </script>
+                """, unsafe_allow_html=True)
     
     # Footer
     st.markdown("---")
