@@ -685,10 +685,12 @@ def main():
         with col2:
             if st.button("Non", key="cancel_lose_changes"):
                 st.session_state.show_unsaved_dialog = False
+                st.session_state.mode_target = None
                 st.rerun()
     
-    # Mettre à jour le mode précédent
-    st.session_state.mode_precedent = mode_affichage
+    # Mettre à jour le mode précédent seulement si pas de dialog actif
+    if not st.session_state.get("show_unsaved_dialog", False):
+        st.session_state.mode_precedent = mode_affichage
     
     
     # Auto-refresh invisible - actualise automatiquement toutes les 15 secondes
