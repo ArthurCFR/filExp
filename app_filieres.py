@@ -536,6 +536,22 @@ def main():
                         format_func=lambda x: etats_labels_custom.get(x, etats_config.get(x, {}).get('label', x)) or str(x),
                         key=f"etat_{filiere_a_editer}"
                     )
+                                            # Niveau d'autonomie
+                    options_autonomie = [
+                        "Besoin d'accompagnement faible",
+                        "Besoin d'accompagnement modéré",
+                        "Besoin d'accompagnement fort",
+                        "Besoin d'accompagnement très fort"
+                    ]
+                    valeur_actuelle = filiere_data.get('niveau_autonomie', options_autonomie[0])
+                    if valeur_actuelle not in options_autonomie:
+                        valeur_actuelle = options_autonomie[0]
+                    nouveau_niveau_autonomie = st.selectbox(
+                        "Niveau d'autonomie",
+                        options_autonomie,
+                        index=options_autonomie.index(valeur_actuelle),
+                        key=f"autonomie_{filiere_a_editer}"
+                    )
                     st.markdown("---")
                     
                     col1, col2 = st.columns(2)
@@ -573,22 +589,6 @@ def main():
                             key=f"collabTotal_{filiere_a_editer}"
                         )
                         
-                        # Niveau d'autonomie
-                        options_autonomie = [
-                            "Besoin d'accompagnement faible",
-                            "Besoin d'accompagnement modéré",
-                            "Besoin d'accompagnement fort",
-                            "Besoin d'accompagnement très fort"
-                        ]
-                        valeur_actuelle = filiere_data.get('niveau_autonomie', options_autonomie[0])
-                        if valeur_actuelle not in options_autonomie:
-                            valeur_actuelle = options_autonomie[0]
-                        nouveau_niveau_autonomie = st.selectbox(
-                            "Niveau d'autonomie",
-                            options_autonomie,
-                            index=options_autonomie.index(valeur_actuelle),
-                            key=f"autonomie_{filiere_a_editer}"
-                        )
                         # Nombre de fiches d'opportunité
                         nouveau_fopp_count = st.number_input(
                             "Nombre de fiches d'opportunité",
