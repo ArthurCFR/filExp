@@ -146,33 +146,38 @@ def display_filiere_card(filiere_key, filiere_data, etats_config):
         <h3>{filiere_data.get('icon', '📁')} {nom_filiere} <span style='font-weight: normal; font-style: italic; font-size: 0.8em;'>({nb_total_collab} collaborateurs)</span></h3>
         """, unsafe_allow_html=True)
         
-        # Badge d'état coloré
-        st.markdown(
-            f"""<div style='display: inline-block; 
-            background-color: {couleur_bordure}; 
-            color: white; 
-            padding: 8px 16px; 
-            border-radius: 20px; 
-            font-weight: bold; 
-            margin: 10px 0;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);'>
-            🎯 {etat_label}
-            </div>""", 
-            unsafe_allow_html=True
-        )
-        # Niveau d'autonomie en haut, sous le badge d'état
-        icone_autonomie = {
-            "Besoin d'accompagnement faible": "🟢",
-            "Besoin d'accompagnement modéré": "🟡",
-            "Besoin d'accompagnement fort": "🟠",
-            "Besoin d'accompagnement très fort": "🔴"
-        }
-        niveau_autonomie = filiere_data.get('niveau_autonomie', 'Non renseigné')
-        icone = icone_autonomie.get(niveau_autonomie, "❔")
-        st.markdown(
-            f"""<div style='margin: 8px 0 0 0; font-size: 1.2em;'><span>{icone}</span> <span style='font-weight:bold;'>{niveau_autonomie}</span></div>""",
-            unsafe_allow_html=True
-        )
+        # Badge d'état et niveau d'autonomie côte à côte
+        col_etat, col_autonomie = st.columns(2)
+        
+        with col_etat:
+            st.markdown(
+                f"""<div style='display: inline-block; 
+                background-color: {couleur_bordure}; 
+                color: white; 
+                padding: 6px 12px; 
+                border-radius: 15px; 
+                font-weight: bold; 
+                margin: 5px 0;
+                font-size: 0.9em;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.2);'>
+                🎯 {etat_label}
+                </div>""", 
+                unsafe_allow_html=True
+            )
+        
+        with col_autonomie:
+            icone_autonomie = {
+                "Besoin d'accompagnement faible": "🟢",
+                "Besoin d'accompagnement modéré": "🟡",
+                "Besoin d'accompagnement fort": "🟠",
+                "Besoin d'accompagnement très fort": "🔴"
+            }
+            niveau_autonomie = filiere_data.get('niveau_autonomie', 'Non renseigné')
+            icone = icone_autonomie.get(niveau_autonomie, "❔")
+            st.markdown(
+                f"""<div style='margin: 5px 0 0 0; font-size: 1.0em;'><span>{icone}</span> <span style='font-weight:bold;'>{niveau_autonomie}</span></div>""",
+                unsafe_allow_html=True
+            )
         
         # Ligne de séparation
         st.markdown("---")
@@ -183,10 +188,11 @@ def display_filiere_card(filiere_key, filiere_data, etats_config):
         with col1:
             st.markdown(
                 f"""<div style='background-color: {couleur_fond}20; 
-                padding: 10px; 
-                border-radius: 5px; 
-                border-left: 3px solid {couleur_bordure};
-                margin-bottom: 10px;'>
+                padding: 6px; 
+                border-radius: 4px; 
+                border-left: 2px solid {couleur_bordure};
+                margin-bottom: 5px;
+                font-size: 0.9em;'>
                 <strong>👤 Référent métier:</strong><br/>
                 {filiere_data.get('referent_metier', 'Non défini')}
                 </div>""", 
@@ -194,22 +200,24 @@ def display_filiere_card(filiere_key, filiere_data, etats_config):
             )
             st.markdown(
                 f"""<div style='background-color: {couleur_fond}20; 
-                padding: 10px; 
-                border-radius: 5px; 
-                border-left: 3px solid {couleur_bordure};
-                margin-bottom: 10px;'>
-                <strong>🧑‍💼 Nombre de référents métier délégués:</strong><br/>
+                padding: 6px; 
+                border-radius: 4px; 
+                border-left: 2px solid {couleur_bordure};
+                margin-bottom: 5px;
+                font-size: 0.9em;'>
+                <strong>🧑‍💼 Référents délégués:</strong><br/>
                 {filiere_data.get('nombre_referents_delegues', 0)}
                 </div>""",
                 unsafe_allow_html=True
             )
             st.markdown(
                 f"""<div style='background-color: {couleur_fond}20; 
-                padding: 10px; 
-                border-radius: 5px; 
-                border-left: 3px solid {couleur_bordure};
-                margin-bottom: 10px;'>
-                <strong>🎓 Nombre de collaborateurs sensibilisés à l'IAGen:</strong><br/>
+                padding: 6px; 
+                border-radius: 4px; 
+                border-left: 2px solid {couleur_bordure};
+                margin-bottom: 5px;
+                font-size: 0.9em;'>
+                <strong>🎓 Sensibilisés IAGen:</strong><br/>
                 {filiere_data.get('nombre_collaborateurs_sensibilises', 0)}
                 </div>""",
                 unsafe_allow_html=True
@@ -217,21 +225,23 @@ def display_filiere_card(filiere_key, filiere_data, etats_config):
         with col2:
             st.markdown(
                 f"""<div style='background-color: {couleur_fond}20; 
-                padding: 10px; 
-                border-radius: 5px; 
-                border-left: 3px solid {couleur_bordure};
-                margin-bottom: 10px;'>
-                <strong>🔑 Accès LaPoste GPT:</strong><br/>
+                padding: 6px; 
+                border-radius: 4px; 
+                border-left: 2px solid {couleur_bordure};
+                margin-bottom: 5px;
+                font-size: 0.9em;'>
+                <strong>🔑 LaPoste GPT:</strong><br/>
                 {filiere_data.get('acces', {}).get('laposte_gpt', 0)}
                 </div>""", 
                 unsafe_allow_html=True
             )
             st.markdown(
                 f"""<div style='background-color: {couleur_fond}20; 
-                padding: 10px; 
-                border-radius: 5px; 
-                border-left: 3px solid {couleur_bordure};
-                margin-bottom: 10px;'>
+                padding: 6px; 
+                border-radius: 4px; 
+                border-left: 2px solid {couleur_bordure};
+                margin-bottom: 5px;
+                font-size: 0.9em;'>
                 <strong>📋 Licences Copilot:</strong><br/>
                 {filiere_data.get('acces', {}).get('copilot_licences', 0)}
                 </div>""", 
@@ -239,47 +249,55 @@ def display_filiere_card(filiere_key, filiere_data, etats_config):
             )
             st.markdown(
                 f"""<div style='background-color: {couleur_fond}20; 
-                padding: 10px; 
-                border-radius: 5px; 
-                border-left: 3px solid {couleur_bordure};
-                margin-bottom: 10px;'>
-                <strong>📄 Nombre de fiches d'opportunité:</strong><br/>
+                padding: 6px; 
+                border-radius: 4px; 
+                border-left: 2px solid {couleur_bordure};
+                margin-bottom: 5px;
+                font-size: 0.9em;'>
+                <strong>📄 Fiches d'opportunité:</strong><br/>
                 {filiere_data.get('fopp_count', 0)}
                 </div>""",
                 unsafe_allow_html=True
             )
         
-        # Point d'attention avec style coloré
+        # Point d'attention et usages phares côte à côte
         point_attention = filiere_data.get('point_attention', '')
-        if point_attention and point_attention != 'Aucun point d\'attention spécifique':
-            st.markdown("---")
-            st.markdown(
-                f"""<div style='background-color: #fff3cd; 
-                border-left: 4px solid #ffc107; 
-                padding: 15px; 
-                border-radius: 5px;
-                margin: 10px 0;'>
-                <strong>⚠️ Point d'attention:</strong><br/>
-                {point_attention}
-                </div>""", 
-                unsafe_allow_html=True
-            )
-        
-        # Usage(s) phare(s)
         usages = filiere_data.get('usages_phares', [])
-        if usages:
+        
+        if point_attention and point_attention != 'Aucun point d\'attention spécifique' or usages:
             st.markdown("---")
-            st.markdown("**🌟 Usage(s) phare(s):**")
-            for usage in usages:
-                st.markdown(
-                    f"""<div style='background-color: {couleur_fond}10; 
-                    padding: 5px 10px; 
-                    border-radius: 5px; 
-                    margin: 5px 0;'>
-                    • {usage}
-                    </div>""", 
-                    unsafe_allow_html=True
-                )
+            
+            col_attention, col_usages = st.columns(2)
+            
+            with col_attention:
+                if point_attention and point_attention != 'Aucun point d\'attention spécifique':
+                    st.markdown(
+                        f"""<div style='background-color: #fff3cd; 
+                        border-left: 3px solid #ffc107; 
+                        padding: 8px; 
+                        border-radius: 4px;
+                        margin: 5px 0;
+                        font-size: 0.9em;'>
+                        <strong>⚠️ Point d'attention:</strong><br/>
+                        {point_attention}
+                        </div>""", 
+                        unsafe_allow_html=True
+                    )
+            
+            with col_usages:
+                if usages:
+                    st.markdown("<strong style='font-size: 0.9em;'>🌟 Usage(s) phare(s):</strong>", unsafe_allow_html=True)
+                    for usage in usages:
+                        st.markdown(
+                            f"""<div style='background-color: {couleur_fond}10; 
+                            padding: 4px 8px; 
+                            border-radius: 4px; 
+                            margin: 3px 0;
+                            font-size: 0.85em;'>
+                            • {usage}
+                            </div>""", 
+                            unsafe_allow_html=True
+                        )
         
         # Événements récents dans un expander
         st.markdown("---")
