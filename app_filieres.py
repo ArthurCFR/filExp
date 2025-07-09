@@ -22,7 +22,7 @@ FILIERE_FIELDS = {
     "nombre_referents_delegues": 0,
     "nombre_collaborateurs_sensibilises": 0,
     "nombre_collaborateurs_total": 0,
-    "etat_avancement": "initialisation",
+    "etat_avancement": "en_emergence",
     "niveau_autonomie": "",
     "fopp_count": 0,
     "description": "",
@@ -72,8 +72,8 @@ def display_filiere_card(filiere_key, filiere_data, etats_config):
     etats_labels_custom = {
         'prompts_deployes': 'AVANCÉ',
         'tests_realises': 'INTERMÉDIAIRE',
-        'ateliers_planifies': 'NAISSANT',
-        'initialisation': 'À ENGAGER'
+        'en_emergence': 'EN ÉMERGENCE',
+        'a_initier': 'À INITIER'
     }
     
     etat_label = etats_labels_custom.get(etat, etat_info.get('label', 'État inconnu'))
@@ -314,8 +314,8 @@ def main():
     etats_labels_custom = {
         'prompts_deployes': 'AVANCÉ',
         'tests_realises': 'INTERMÉDIAIRE',
-        'ateliers_planifies': 'NAISSANT',
-        'initialisation': 'À ENGAGER'
+        'en_emergence': 'EN ÉMERGENCE',
+        'a_initier': 'À INITIER'
     }
     
     etats_disponibles = ['Tous'] + list(etats_config.keys())
@@ -360,8 +360,8 @@ def main():
     etats_labels_custom = {
         'prompts_deployes': 'AVANCÉ - Les COSUI sont réguliers et les expérimentations en cours',
         'tests_realises': 'INTERMÉDIAIRE - Échanges en cours avec les référents métiers - premiers COSUI et/ou quelques expérimentations en démarrage',
-        'ateliers_planifies': 'NAISSANT - Des opportunités IAGen ont été identifiées - pas de COSUI ni d\'expérimentation en cours',
-        'initialisation': 'À ENGAGER - Filière à engager (pas ou peu de FOPP, contact à initier avec un référent métier)'
+        'en_emergence': 'EN ÉMERGENCE - Des opportunités IAGen ont été identifiées - pas de COSUI ni d\'expérimentation en cours',
+        'a_initier': 'À INITIER - Filière à engager (pas ou peu de FOPP, contact à initier avec un référent métier)'
     }
     
     cols = st.columns(len(etats_config))
@@ -412,15 +412,15 @@ def main():
         etats_labels_custom = {
             'prompts_deployes': 'AVANCÉ',
             'tests_realises': 'INTERMÉDIAIRE', 
-            'ateliers_planifies': 'NAISSANT',
-            'initialisation': 'À ENGAGER'
+            'en_emergence': 'EN ÉMERGENCE',
+            'a_initier': 'À INITIER'
         }
         
         etats_descriptions = {
             'prompts_deployes': 'Les COSUI sont réguliers et les expérimentations en cours',
             'tests_realises': 'Échanges en cours avec les référents métiers - premiers COSUI et/ou quelques expérimentations en démarrage',
-            'ateliers_planifies': 'Des opportunités IAGen ont été identifiées - pas de COSUI ni d\'expérimentation en cours',
-            'initialisation': 'Filière à engager (pas ou peu de FOPP, contact à initier avec un référent métier)'
+            'en_emergence': 'Des opportunités IAGen ont été identifiées - pas de COSUI ni d\'expérimentation en cours',
+            'a_initier': 'Filière à engager (pas ou peu de FOPP, contact à initier avec un référent métier)'
         }
         
         # Grouper les filières par état
@@ -432,7 +432,7 @@ def main():
             filieres_par_etat[etat].append((key, filiere))
         
         # Ordre des états (du plus avancé au moins avancé)
-        ordre_etats = ['prompts_deployes', 'tests_realises', 'ateliers_planifies', 'initialisation']
+        ordre_etats = ['prompts_deployes', 'tests_realises', 'en_emergence', 'a_initier']
         
         # Afficher les filières groupées par état
         for etat in ordre_etats:
@@ -467,8 +467,8 @@ def main():
         etats_labels_custom = {
             'prompts_deployes': '🟢 AVANCÉ',
             'tests_realises': '🔵 INTERMÉDIAIRE',
-            'ateliers_planifies': '🟡 NAISSANT',
-            'initialisation': '🔴 À ENGAGER'
+            'en_emergence': '🟡 EN ÉMERGENCE',
+            'a_initier': '🔴 À INITIER'
         }
         table_data = []
         for key, filiere in filieres_filtrees.items():
@@ -525,8 +525,8 @@ def main():
                     etats_labels_custom = {
                         'prompts_deployes': 'AVANCÉ',
                         'tests_realises': 'INTERMÉDIAIRE',
-                        'ateliers_planifies': 'NAISSANT',
-                        'initialisation': 'À ENGAGER'
+                        'en_emergence': 'EN ÉMERGENCE',
+                        'a_initier': 'À INITIER'
                     }
                     st.markdown("**🎯 État d'avancement**")
                     nouvel_etat = st.selectbox(
