@@ -652,52 +652,8 @@ def main():
     st.header("🗂️ Fiches d'avancement des filières")
     st.write(f"*{len(filieres_filtrees)} filière(s) affichée(s)*")
     
-    # Mode d'affichage avec détection de changements
-    mode_precedent = st.session_state.get("mode_precedent", "Cartes")
-    
-    # Fonction pour détecter les changements globaux
-    def detecter_changements_globaux():
-        """Détecte si des changements ont été faits dans les champs d'édition"""
-        if st.session_state.get("mode_precedent") != "Édition":
-            return False
-        
-        # Vérifier s'il y a des filières éditées
-        filieres_editees = []
-        for key in st.session_state.keys():
-            if isinstance(key, str) and any(key.startswith(prefix) for prefix in ["etat_", "ref_", "attention_", "refdelegues_", "collabIAGen_", "collabTotal_", "autonomie_", "fopp_", "gpt_", "copilot_", "usages_", "events_"]):
-                filiere_key = key.split("_", 1)[1]
-                if filiere_key in filieres and filiere_key not in filieres_editees:
-                    filieres_editees.append(filiere_key)
-        
-        # Vérifier chaque filière éditée
-        for filiere_key in filieres_editees:
-            filiere_data = filieres[filiere_key]
-            
-            # Vérifier les usages phares
-            usages_originaux = '\n'.join(filiere_data.get('usages_phares', []))
-            usages_session = st.session_state.get(f"usages_{filiere_key}", usages_originaux)
-            
-            # Vérifier les événements récents
-            events_originaux = []
-            for event in filiere_data.get('evenements_recents', []):
-                events_originaux.append(f"{event.get('date', '')};{event.get('titre', '')};{event.get('description', '')}")
-            events_text_original = '\n'.join(events_originaux)
-            events_session = st.session_state.get(f"events_{filiere_key}", events_text_original)
-            
-            if (st.session_state.get(f"ref_{filiere_key}", "") != filiere_data.get('referent_metier', '') or
-                st.session_state.get(f"refdelegues_{filiere_key}", 0) != filiere_data.get('nombre_referents_delegues', 0) or
-                st.session_state.get(f"collabIAGen_{filiere_key}", 0) != filiere_data.get('nombre_collaborateurs_sensibilises', 0) or
-                st.session_state.get(f"collabTotal_{filiere_key}", 0) != filiere_data.get('nombre_collaborateurs_total', 0) or
-                st.session_state.get(f"autonomie_{filiere_key}", "") != filiere_data.get('niveau_autonomie', '') or
-                st.session_state.get(f"fopp_{filiere_key}", 0) != filiere_data.get('fopp_count', 0) or
-                st.session_state.get(f"etat_{filiere_key}", "") != filiere_data.get('etat_avancement', '') or
-                st.session_state.get(f"gpt_{filiere_key}", 0) != filiere_data.get('acces', {}).get('laposte_gpt', 0) or
-                st.session_state.get(f"copilot_{filiere_key}", 0) != filiere_data.get('acces', {}).get('copilot_licences', 0) or
-                st.session_state.get(f"attention_{filiere_key}", "") != filiere_data.get('point_attention', '') or
-                usages_session != usages_originaux or
-                events_session != events_text_original):
-                return True
-        return False
+    # Simple tracking des modifications non sauvegardées
+    has_unsaved_changes = st.session_state.get("has_unsaved_changes", False)
     
     mode_affichage = st.radio(
         "Mode d'affichage",
@@ -706,43 +662,29 @@ def main():
         key="mode_affichage_radio"
     )
     
-    # Vérifier si on change de vue avec des modifications non sauvegardées
-    if mode_precedent == "Édition" and mode_affichage != "Édition" and detecter_changements_globaux():
-        st.session_state.show_mode_change_dialog = True
+    # Vérifier si on quitte l'édition avec des modifications non sauvegardées
+    mode_precedent = st.session_state.get("mode_precedent", "Cartes")
+    if mode_precedent == "Édition" and mode_affichage != "Édition" and has_unsaved_changes:
+        st.session_state.show_unsaved_dialog = True
         st.session_state.mode_target = mode_affichage
         # Revenir au mode précédent temporairement
         mode_affichage = "Édition"
     
-    # Dialog de confirmation pour changement de mode
-    if st.session_state.get("show_mode_change_dialog", False):
-        st.warning("⚠️ Vous avez des modifications non sauvegardées")
+    # Dialog simple pour modifications non sauvegardées
+    if st.session_state.get("show_unsaved_dialog", False):
+        st.warning("⚠️ Continuer sans enregistrer (toute modification sera perdue) ?")
         
-        col1, col2, col3 = st.columns([1, 1, 1])
+        col1, col2 = st.columns(2)
         with col1:
-            if st.button("💾 Sauvegarder et continuer", key="save_and_change_mode"):
-                # Déclencher la sauvegarde immédiatement
-                st.session_state.force_save_global = True
-                st.session_state.trigger_save_from_dialog = True
-                st.session_state.show_mode_change_dialog = False
-                st.rerun()
-        
-        with col2:
-            if st.button("🗑️ Ignorer les modifications", key="ignore_and_change_mode"):
-                # Nettoyer les changements du session_state
-                keys_to_remove = []
-                for key in st.session_state.keys():
-                    if isinstance(key, str) and any(key.startswith(prefix) for prefix in ["etat_", "ref_", "attention_", "refdelegues_", "collabIAGen_", "collabTotal_", "autonomie_", "fopp_", "gpt_", "copilot_", "usages_", "events_"]):
-                        keys_to_remove.append(key)
-                for key in keys_to_remove:
-                    del st.session_state[key]
-                
-                st.session_state.show_mode_change_dialog = False
+            if st.button("Oui", key="confirm_lose_changes"):
+                st.session_state.has_unsaved_changes = False
+                st.session_state.show_unsaved_dialog = False
                 st.session_state.mode_precedent = st.session_state.mode_target
                 st.rerun()
         
-        with col3:
-            if st.button("❌ Rester en édition", key="cancel_mode_change"):
-                st.session_state.show_mode_change_dialog = False
+        with col2:
+            if st.button("Non", key="cancel_lose_changes"):
+                st.session_state.show_unsaved_dialog = False
                 st.rerun()
     
     # Mettre à jour le mode précédent
@@ -976,47 +918,19 @@ def main():
             if st.session_state.filiere_editee_index >= len(filieres_keys):
                 st.session_state.filiere_editee_index = 0
             
-            # Fonction pour détecter les changements
+            # Fonction pour détecter les changements - utilise le flag simple
             def detecter_changements(filiere_key, filiere_data):
                 """Détecte si des changements ont été faits dans les champs"""
-                if f"ref_{filiere_key}" in st.session_state:
-                    # Vérifier les usages phares
-                    usages_originaux = '\n'.join(filiere_data.get('usages_phares', []))
-                    usages_session = st.session_state.get(f"usages_{filiere_key}", usages_originaux)
-                    
-                    # Vérifier les événements récents
-                    events_originaux = []
-                    for event in filiere_data.get('evenements_recents', []):
-                        events_originaux.append(f"{event.get('date', '')};{event.get('titre', '')};{event.get('description', '')}")
-                    events_text_original = '\n'.join(events_originaux)
-                    events_session = st.session_state.get(f"events_{filiere_key}", events_text_original)
-                    
-                    return (
-                        st.session_state.get(f"ref_{filiere_key}", "") != filiere_data.get('referent_metier', '') or
-                        st.session_state.get(f"refdelegues_{filiere_key}", 0) != filiere_data.get('nombre_referents_delegues', 0) or
-                        st.session_state.get(f"collabIAGen_{filiere_key}", 0) != filiere_data.get('nombre_collaborateurs_sensibilises', 0) or
-                        st.session_state.get(f"collabTotal_{filiere_key}", 0) != filiere_data.get('nombre_collaborateurs_total', 0) or
-                        st.session_state.get(f"autonomie_{filiere_key}", "") != filiere_data.get('niveau_autonomie', '') or
-                        st.session_state.get(f"fopp_{filiere_key}", 0) != filiere_data.get('fopp_count', 0) or
-                        st.session_state.get(f"etat_{filiere_key}", "") != filiere_data.get('etat_avancement', '') or
-                        st.session_state.get(f"gpt_{filiere_key}", 0) != filiere_data.get('acces', {}).get('laposte_gpt', 0) or
-                        st.session_state.get(f"copilot_{filiere_key}", 0) != filiere_data.get('acces', {}).get('copilot_licences', 0) or
-                        st.session_state.get(f"attention_{filiere_key}", "") != filiere_data.get('point_attention', '') or
-                        usages_session != usages_originaux or
-                        events_session != events_text_original
-                    )
-                return False
+                return st.session_state.get("has_unsaved_changes", False)
             
             # Interface de navigation
             col1, col2, col3 = st.columns([1, 6, 1])
             
             with col1:
                 if st.button("◀", key="nav_prev", help="Filière précédente"):
-                    current_filiere = filieres_keys[st.session_state.filiere_editee_index]
-                    if detecter_changements(current_filiere, filieres[current_filiere]):
+                    if st.session_state.get("has_unsaved_changes", False):
                         st.session_state.navigation_pending = "prev"
-                        st.session_state.show_save_dialog = True
-                        st.session_state.filiere_nom_dialog = filieres[current_filiere].get('nom', 'Filière')
+                        st.session_state.show_navigation_dialog = True
                     else:
                         st.session_state.filiere_editee_index = (st.session_state.filiere_editee_index - 1) % len(filieres_keys)
                         st.rerun()
@@ -1036,44 +950,34 @@ def main():
             
             with col3:
                 if st.button("▶", key="nav_next", help="Filière suivante"):
-                    current_filiere = filieres_keys[st.session_state.filiere_editee_index]
-                    if detecter_changements(current_filiere, filieres[current_filiere]):
+                    if st.session_state.get("has_unsaved_changes", False):
                         st.session_state.navigation_pending = "next"
-                        st.session_state.show_save_dialog = True
-                        st.session_state.filiere_nom_dialog = filieres[current_filiere].get('nom', 'Filière')
+                        st.session_state.show_navigation_dialog = True
                     else:
                         st.session_state.filiere_editee_index = (st.session_state.filiere_editee_index + 1) % len(filieres_keys)
                         st.rerun()
             
-            # Dialog de confirmation pour sauvegarder
-            if st.session_state.get("show_save_dialog", False):
-                st.warning(f"⚠️ Vous avez des modifications non sauvegardées sur la filière '{st.session_state.filiere_nom_dialog}'")
+            # Dialog de confirmation pour navigation
+            if st.session_state.get("show_navigation_dialog", False):
+                st.warning("⚠️ Continuer sans enregistrer (toute modification sera perdue) ?")
                 
-                col1, col2, col3 = st.columns([1, 1, 1])
+                col1, col2 = st.columns(2)
                 with col1:
-                    if st.button("💾 Sauvegarder", key="save_and_nav"):
-                        # Sauvegarder les modifications actuelles
-                        current_filiere = filieres_keys[st.session_state.filiere_editee_index]
-                        # Déclencher la sauvegarde (logique à ajouter)
-                        st.session_state.force_save = True
-                        st.session_state.show_save_dialog = False
-                        st.rerun()
-                
-                with col2:
-                    if st.button("🗑️ Ignorer", key="ignore_and_nav"):
-                        # Ignorer les modifications et naviguer
+                    if st.button("Oui", key="confirm_nav_lose_changes"):
+                        # Naviguer sans sauvegarder
                         if st.session_state.navigation_pending == "prev":
                             st.session_state.filiere_editee_index = (st.session_state.filiere_editee_index - 1) % len(filieres_keys)
                         elif st.session_state.navigation_pending == "next":
                             st.session_state.filiere_editee_index = (st.session_state.filiere_editee_index + 1) % len(filieres_keys)
                         
-                        st.session_state.show_save_dialog = False
+                        st.session_state.has_unsaved_changes = False
+                        st.session_state.show_navigation_dialog = False
                         st.session_state.navigation_pending = None
                         st.rerun()
                 
-                with col3:
-                    if st.button("❌ Annuler", key="cancel_nav"):
-                        st.session_state.show_save_dialog = False
+                with col2:
+                    if st.button("Non", key="cancel_nav_lose_changes"):
+                        st.session_state.show_navigation_dialog = False
                         st.session_state.navigation_pending = None
                         st.rerun()
             
@@ -1268,11 +1172,16 @@ def main():
                                                use_container_width=True,
                                                key="save_button_main")
                     
-                    # Logique de sauvegarde
-                    force_save = st.session_state.get("force_save", False) or st.session_state.get("force_save_global", False)
-                    trigger_save_from_dialog = st.session_state.get("trigger_save_from_dialog", False)
+                    # Marquer les changements quand un champ est modifié
+                    change_keys = [f"ref_{filiere_a_editer}", f"etat_{filiere_a_editer}", f"attention_{filiere_a_editer}", 
+                                 f"usages_{filiere_a_editer}", f"events_{filiere_a_editer}", f"refdelegues_{filiere_a_editer}",
+                                 f"collabIAGen_{filiere_a_editer}", f"collabTotal_{filiere_a_editer}", f"autonomie_{filiere_a_editer}",
+                                 f"fopp_{filiere_a_editer}", f"gpt_{filiere_a_editer}", f"copilot_{filiere_a_editer}"]
+                    if any(key in st.session_state for key in change_keys):
+                        st.session_state.has_unsaved_changes = True
                     
-                    if force_save or save_clicked or trigger_save_from_dialog:
+                    # Sauvegarde uniquement quand le bouton est cliqué
+                    if save_clicked:
                             # Convertir les données
                             nouveaux_usages = [usage.strip() for usage in nouveaux_usages_text.split('\n') if usage.strip()]
                             
@@ -1308,33 +1217,8 @@ def main():
                                 st.session_state["success_message"] = True
                                 st.session_state["success_timestamp"] = datetime.now().timestamp()
                                 
-                                # Nettoyer les flags de sauvegarde
-                                st.session_state["trigger_save_from_dialog"] = False
-                                
-                                # Nettoyer les variables de modification pour éviter la détection continue
-                                keys_to_clean = []
-                                for key in st.session_state.keys():
-                                    if isinstance(key, str) and any(key.startswith(prefix) for prefix in ["etat_", "ref_", "attention_", "refdelegues_", "collabIAGen_", "collabTotal_", "autonomie_", "fopp_", "gpt_", "copilot_", "usages_", "events_"]):
-                                        if key.endswith(filiere_a_editer):
-                                            keys_to_clean.append(key)
-                                for key in keys_to_clean:
-                                    del st.session_state[key]
-                                
-                                if st.session_state.get("force_save_global", False):
-                                    st.session_state.force_save_global = False
-                                    # Changer de mode après sauvegarde globale
-                                    mode_cible = st.session_state.get("mode_target", "Cartes")
-                                    st.session_state.mode_precedent = mode_cible
-                                    st.session_state["mode_affichage_radio"] = mode_cible
-                                
-                                # Si c'était une sauvegarde forcée, naviguer après
-                                if st.session_state.get("force_save", False):
-                                    st.session_state.force_save = False
-                                    if st.session_state.get("navigation_pending") == "prev":
-                                        st.session_state.filiere_editee_index = (st.session_state.filiere_editee_index - 1) % len(filieres_keys)
-                                    elif st.session_state.get("navigation_pending") == "next":
-                                        st.session_state.filiere_editee_index = (st.session_state.filiere_editee_index + 1) % len(filieres_keys)
-                                    st.session_state.navigation_pending = None
+                                # Marquer comme sauvegardé
+                                st.session_state.has_unsaved_changes = False
                                 
                                 st.rerun()
                     
