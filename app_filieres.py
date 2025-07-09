@@ -35,7 +35,7 @@ def display_filiere_card(filiere_key, filiere_data, etats_config):
     etats_labels_custom = {
         'prompts_deployes': 'AVANCÉ',
         'tests_realises': 'INTERMÉDIAIRE',
-        'ateliers_test_planifies': 'NAISSANT',
+        'ateliers_planifies': 'NAISSANT',
         'initialisation': 'À ENGAGER'
     }
     
@@ -201,7 +201,7 @@ def main():
     etats_labels_custom = {
         'prompts_deployes': 'AVANCÉ',
         'tests_realises': 'INTERMÉDIAIRE',
-        'ateliers_test_planifies': 'NAISSANT',
+        'ateliers_planifies': 'NAISSANT',
         'initialisation': 'À ENGAGER'
     }
     
@@ -247,7 +247,7 @@ def main():
     etats_labels_custom = {
         'prompts_deployes': 'AVANCÉ - Les COSUI sont réguliers et les expérimentations en cours',
         'tests_realises': 'INTERMÉDIAIRE - Échanges en cours avec les référents métiers - premiers COSUI et/ou quelques expérimentations en démarrage',
-        'ateliers_test_planifies': 'NAISSANT - Des opportunités IAGen ont été identifiées - pas de COSUI ni d\'expérimentation en cours',
+        'ateliers_planifies': 'NAISSANT - Des opportunités IAGen ont été identifiées - pas de COSUI ni d\'expérimentation en cours',
         'initialisation': 'À ENGAGER - Filière à engager (pas ou peu de FOPP, contact à initier avec un référent métier)'
     }
     
@@ -294,14 +294,14 @@ def main():
         etats_labels_custom = {
             'prompts_deployes': 'AVANCÉ',
             'tests_realises': 'INTERMÉDIAIRE', 
-            'ateliers_test_planifies': 'NAISSANT',
+            'ateliers_planifies': 'NAISSANT',
             'initialisation': 'À ENGAGER'
         }
         
         etats_descriptions = {
             'prompts_deployes': 'Les COSUI sont réguliers et les expérimentations en cours',
             'tests_realises': 'Échanges en cours avec les référents métiers - premiers COSUI et/ou quelques expérimentations en démarrage',
-            'ateliers_test_planifies': 'Des opportunités IAGen ont été identifiées - pas de COSUI ni d\'expérimentation en cours',
+            'ateliers_planifies': 'Des opportunités IAGen ont été identifiées - pas de COSUI ni d\'expérimentation en cours',
             'initialisation': 'Filière à engager (pas ou peu de FOPP, contact à initier avec un référent métier)'
         }
         
@@ -314,7 +314,7 @@ def main():
             filieres_par_etat[etat].append((key, filiere))
         
         # Ordre des états (du plus avancé au moins avancé)
-        ordre_etats = ['prompts_deployes', 'tests_realises', 'ateliers_test_planifies', 'initialisation']
+        ordre_etats = ['prompts_deployes', 'tests_realises', 'ateliers_planifies', 'initialisation']
         
         # Afficher les filières groupées par état
         for etat in ordre_etats:
@@ -351,7 +351,7 @@ def main():
         etats_labels_custom = {
             'prompts_deployes': 'AVANCÉ',
             'tests_realises': 'INTERMÉDIAIRE',
-            'ateliers_test_planifies': 'NAISSANT',
+            'ateliers_planifies': 'NAISSANT',
             'initialisation': 'À ENGAGER'
         }
         
@@ -426,7 +426,7 @@ def main():
                         etats_labels_custom = {
                             'prompts_deployes': 'AVANCÉ',
                             'tests_realises': 'INTERMÉDIAIRE',
-                            'ateliers_test_planifies': 'NAISSANT',
+                            'ateliers_planifies': 'NAISSANT',
                             'initialisation': 'À ENGAGER'
                         }
                         
