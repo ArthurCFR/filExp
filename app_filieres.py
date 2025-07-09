@@ -486,35 +486,10 @@ def main():
                     margin=dict(t=50, b=20, l=20, r=20),
                     font=dict(size=10),
                     showlegend=True,
-                    legend=dict(orientation="v", yanchor="middle", y=0.5, xanchor="left", x=1.02),
-                    # Ajouter une ombre légère
-                    paper_bgcolor='rgba(0,0,0,0)',
-                    plot_bgcolor='rgba(0,0,0,0)',
+                    legend=dict(orientation="v", yanchor="middle", y=0.5, xanchor="left", x=1.02)
                 )
-                fig1.update_traces(
-                    textposition='inside', 
-                    textinfo='percent+label',
-                    # Effet de zoom au hover
-                    hovertemplate='<b>%{label}</b><br>Accès: %{value}<br>Pourcentage: %{percent}<extra></extra>',
-                    hoverlabel=dict(bgcolor="white", font_size=12, font_family="Arial"),
-                    # Effet de pull (zoom) au hover - léger décalage vers l'extérieur
-                    pull=[0.05] * len(laposte_gpt_data)  # Effet subtle pour toutes les parts
-                )
-                
-                # Container avec ombre pour le graphique
-                st.markdown("""
-                <div style='
-                    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-                    border-radius: 10px;
-                    background: white;
-                    padding: 10px;
-                    margin: 10px 0;
-                '>
-                """, unsafe_allow_html=True)
-                
+                fig1.update_traces(textposition='inside', textinfo='percent+label')
                 st.plotly_chart(fig1, use_container_width=True)
-                
-                st.markdown("</div>", unsafe_allow_html=True)
             elif MATPLOTLIB_AVAILABLE:
                 fig, ax = plt.subplots(figsize=(6, 4))
                 ax.pie(list(laposte_gpt_data.values()), labels=list(laposte_gpt_data.keys()), 
@@ -551,35 +526,10 @@ def main():
                     margin=dict(t=50, b=20, l=20, r=20),
                     font=dict(size=10),
                     showlegend=True,
-                    legend=dict(orientation="v", yanchor="middle", y=0.5, xanchor="left", x=1.02),
-                    # Ajouter une ombre légère
-                    paper_bgcolor='rgba(0,0,0,0)',
-                    plot_bgcolor='rgba(0,0,0,0)',
+                    legend=dict(orientation="v", yanchor="middle", y=0.5, xanchor="left", x=1.02)
                 )
-                fig2.update_traces(
-                    textposition='inside', 
-                    textinfo='percent+label',
-                    # Effet de zoom au hover
-                    hovertemplate='<b>%{label}</b><br>Licences: %{value}<br>Pourcentage: %{percent}<extra></extra>',
-                    hoverlabel=dict(bgcolor="white", font_size=12, font_family="Arial"),
-                    # Effet de pull (zoom) au hover - léger décalage vers l'extérieur
-                    pull=[0.05] * len(copilot_data)  # Effet subtle pour toutes les parts
-                )
-                
-                # Container avec ombre pour le graphique
-                st.markdown("""
-                <div style='
-                    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-                    border-radius: 10px;
-                    background: white;
-                    padding: 10px;
-                    margin: 10px 0;
-                '>
-                """, unsafe_allow_html=True)
-                
+                fig2.update_traces(textposition='inside', textinfo='percent+label')
                 st.plotly_chart(fig2, use_container_width=True)
-                
-                st.markdown("</div>", unsafe_allow_html=True)
             elif MATPLOTLIB_AVAILABLE:
                 fig, ax = plt.subplots(figsize=(6, 4))
                 ax.pie(list(copilot_data.values()), labels=list(copilot_data.keys()), 
@@ -595,9 +545,6 @@ def main():
                     st.write(f"• {filiere}: {count} licences ({percentage:.1f}%)")
         else:
             st.info("Aucune licence Copilot configurée")
-    
-    # Divider en dessous des pie charts
-    st.markdown("---")
     
     # Affichage des fiches
     st.header("🗂️ Fiches d'avancement des filières")
