@@ -146,38 +146,35 @@ def display_filiere_card(filiere_key, filiere_data, etats_config):
         <h3>{filiere_data.get('icon', '📁')} {nom_filiere} <span style='font-weight: normal; font-style: italic; font-size: 0.8em;'>({nb_total_collab} collaborateurs)</span></h3>
         """, unsafe_allow_html=True)
         
-        # Badge d'état et niveau d'autonomie côte à côte
-        col_etat, col_autonomie = st.columns(2)
+        # Badge d'état
+        st.markdown(
+            f"""<div style='display: inline-block; 
+            background-color: {couleur_bordure}; 
+            color: white; 
+            padding: 6px 12px; 
+            border-radius: 15px; 
+            font-weight: bold; 
+            margin: 5px 0;
+            font-size: 0.9em;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);'>
+            🎯 {etat_label}
+            </div>""", 
+            unsafe_allow_html=True
+        )
         
-        with col_etat:
-            st.markdown(
-                f"""<div style='display: inline-block; 
-                background-color: {couleur_bordure}; 
-                color: white; 
-                padding: 6px 12px; 
-                border-radius: 15px; 
-                font-weight: bold; 
-                margin: 5px 0;
-                font-size: 0.9em;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.2);'>
-                🎯 {etat_label}
-                </div>""", 
-                unsafe_allow_html=True
-            )
-        
-        with col_autonomie:
-            icone_autonomie = {
-                "Besoin d'accompagnement faible": "🟢",
-                "Besoin d'accompagnement modéré": "🟡",
-                "Besoin d'accompagnement fort": "🟠",
-                "Besoin d'accompagnement très fort": "🔴"
-            }
-            niveau_autonomie = filiere_data.get('niveau_autonomie', 'Non renseigné')
-            icone = icone_autonomie.get(niveau_autonomie, "❔")
-            st.markdown(
-                f"""<div style='margin: 5px 0 0 0; font-size: 1.0em;'><span>{icone}</span> <span style='font-weight:bold;'>{niveau_autonomie}</span></div>""",
-                unsafe_allow_html=True
-            )
+        # Niveau d'autonomie
+        icone_autonomie = {
+            "Besoin d'accompagnement faible": "🟢",
+            "Besoin d'accompagnement modéré": "🟡",
+            "Besoin d'accompagnement fort": "🟠",
+            "Besoin d'accompagnement très fort": "🔴"
+        }
+        niveau_autonomie = filiere_data.get('niveau_autonomie', 'Non renseigné')
+        icone = icone_autonomie.get(niveau_autonomie, "❔")
+        st.markdown(
+            f"""<div style='margin: 5px 0 0 0; font-size: 1.0em;'><span>{icone}</span> <span style='font-weight:bold;'>{niveau_autonomie}</span></div>""",
+            unsafe_allow_html=True
+        )
         
         # Ligne de séparation
         st.markdown("---")
@@ -205,7 +202,7 @@ def display_filiere_card(filiere_key, filiere_data, etats_config):
                 border-left: 2px solid {couleur_bordure};
                 margin-bottom: 5px;
                 font-size: 0.9em;'>
-                <strong>🧑‍💼 Référents délégués:</strong><br/>
+                <strong>🧑‍💼 Référents métier délégués:</strong><br/>
                 {filiere_data.get('nombre_referents_delegues', 0)}
                 </div>""",
                 unsafe_allow_html=True
@@ -260,44 +257,40 @@ def display_filiere_card(filiere_key, filiere_data, etats_config):
                 unsafe_allow_html=True
             )
         
-        # Point d'attention et usages phares côte à côte
+        # Point d'attention
         point_attention = filiere_data.get('point_attention', '')
-        usages = filiere_data.get('usages_phares', [])
-        
-        if point_attention and point_attention != 'Aucun point d\'attention spécifique' or usages:
+        if point_attention and point_attention != 'Aucun point d\'attention spécifique':
             st.markdown("---")
-            
-            col_attention, col_usages = st.columns(2)
-            
-            with col_attention:
-                if point_attention and point_attention != 'Aucun point d\'attention spécifique':
-                    st.markdown(
-                        f"""<div style='background-color: #fff3cd; 
-                        border-left: 3px solid #ffc107; 
-                        padding: 8px; 
-                        border-radius: 4px;
-                        margin: 5px 0;
-                        font-size: 0.9em;'>
-                        <strong>⚠️ Point d'attention:</strong><br/>
-                        {point_attention}
-                        </div>""", 
-                        unsafe_allow_html=True
-                    )
-            
-            with col_usages:
-                if usages:
-                    st.markdown("<strong style='font-size: 0.9em;'>🌟 Usage(s) phare(s):</strong>", unsafe_allow_html=True)
-                    for usage in usages:
-                        st.markdown(
-                            f"""<div style='background-color: {couleur_fond}10; 
-                            padding: 4px 8px; 
-                            border-radius: 4px; 
-                            margin: 3px 0;
-                            font-size: 0.85em;'>
-                            • {usage}
-                            </div>""", 
-                            unsafe_allow_html=True
-                        )
+            st.markdown(
+                f"""<div style='background-color: #fff3cd; 
+                border-left: 3px solid #ffc107; 
+                padding: 8px; 
+                border-radius: 4px;
+                margin: 5px 0;
+                font-size: 0.9em;'>
+                <strong>⚠️ Point d'attention:</strong><br/>
+                {point_attention}
+                </div>""", 
+                unsafe_allow_html=True
+            )
+        
+        # Usages phares
+        usages = filiere_data.get('usages_phares', [])
+        if usages:
+            if not (point_attention and point_attention != 'Aucun point d\'attention spécifique'):
+                st.markdown("---")
+            st.markdown("<strong style='font-size: 0.9em;'>🌟 Usage(s) phare(s):</strong>", unsafe_allow_html=True)
+            for usage in usages:
+                st.markdown(
+                    f"""<div style='background-color: {couleur_fond}10; 
+                    padding: 4px 8px; 
+                    border-radius: 4px; 
+                    margin: 3px 0;
+                    font-size: 0.85em;'>
+                    • {usage}
+                    </div>""", 
+                    unsafe_allow_html=True
+                )
         
         # Événements récents dans un expander
         st.markdown("---")
@@ -485,52 +478,49 @@ def main():
         # Reconvertir en hex
         return f"#{r:02x}{g:02x}{b:02x}"
     
-    # Palette étendue avec suffisamment de couleurs pour toutes les filières
-    app_colors_original = [
-        '#28a745',  # Vert (prompts_deployes)
-        '#007bff',  # Bleu (tests_realises)
-        '#ffc107',  # Jaune (en_emergence)
-        '#dc3545',  # Rouge (a_initier)
-        '#6c757d',  # Gris
-        '#17a2b8',  # Cyan
-        '#e83e8c',  # Rose
-        '#fd7e14',  # Orange
-        '#20c997',  # Teal
-        '#6f42c1',  # Violet
-        '#795548',  # Marron
-        '#607d8b',  # Bleu gris
-        '#ff9800',  # Orange profond
-        '#4caf50',  # Vert clair
-        '#2196f3',  # Bleu clair
-        '#9c27b0',  # Violet profond
-        '#f44336',  # Rouge profond
-        '#00bcd4',  # Cyan clair
-        '#8bc34a',  # Vert lime
-        '#ff5722',  # Orange rouge
-        '#3f51b5',  # Indigo
-        '#9e9e9e',  # Gris moyen
-        '#cddc39',  # Lime
-        '#ffeb3b',  # Jaune clair
-        '#ff9688',  # Rouge clair
-        '#80cbc4',  # Teal clair
-        '#ce93d8',  # Violet clair
-        '#fff176',  # Jaune très clair
-        '#a5d6a7',  # Vert très clair
-        '#90caf9',  # Bleu très clair
-        '#f8bbd9',  # Rose clair
-        '#d7ccc8',  # Beige
-        '#b39ddb',  # Lavande
-        '#ffcc02',  # Or
-        '#ff6f00',  # Orange foncé
-        '#1de9b6',  # Turquoise
-        '#7c4dff',  # Violet électrique
-        '#ff1744',  # Rouge vif
-        '#00e676',  # Vert vif
-        '#2979ff'   # Bleu vif
+    # Palette harmonieuse basée sur les couleurs demandées
+    app_colors = [
+        '#A5D6A7',  # Vert pastel
+        '#87CEEB',  # Bleu ciel
+        '#FFCC80',  # Orange pastel
+        '#F8BBD9',  # Rose pastel (couleur harmonieuse)
+        '#D1C4E9',  # Violet pastel (couleur harmonieuse)
+        '#FFAB91',  # Saumon pastel (couleur harmonieuse)
+        '#80CBC4',  # Turquoise pastel (couleur harmonieuse)
+        '#FFF176',  # Jaune pastel (couleur harmonieuse)
+        '#C8E6C9',  # Vert très clair (variation)
+        '#B3E5FC',  # Bleu très clair (variation)
+        '#FFE0B2',  # Orange très clair (variation)
+        '#E1BEE7',  # Violet très clair (variation)
+        '#FFCDD2',  # Rose très clair (variation)
+        '#B2DFDB',  # Turquoise très clair (variation)
+        '#F0F4C3',  # Jaune très clair (variation)
+        '#DCEDC8',  # Vert lime clair (variation)
+        '#BBDEFB',  # Bleu clair (variation)
+        '#FFECB3',  # Ambre clair (variation)
+        '#F3E5F5',  # Violet très pâle (variation)
+        '#FCE4EC',  # Rose très pâle (variation)
+        '#E0F2F1',  # Turquoise très pâle (variation)
+        '#FFFDE7',  # Jaune très pâle (variation)
+        '#E8F5E8',  # Vert très pâle (variation)
+        '#E3F2FD',  # Bleu très pâle (variation)
+        '#FFF8E1',  # Orange très pâle (variation)
+        '#F9FBE7',  # Lime très pâle (variation)
+        '#FFF3E0',  # Orange doux (variation)
+        '#E8EAF6',  # Indigo pâle (variation)
+        '#FFEBEE',  # Rouge pâle (variation)
+        '#E0F7FA',  # Cyan pâle (variation)
+        '#F1F8E9',  # Vert doux (variation)
+        '#E1F5FE',  # Bleu doux (variation)
+        '#FFF9C4',  # Jaune doux (variation)
+        '#E4C441',  # Doré doux (variation)
+        '#AED581',  # Vert lime doux (variation)
+        '#4FC3F7',  # Bleu vif doux (variation)
+        '#FFB74D',  # Orange vif doux (variation)
+        '#BA68C8',  # Violet vif doux (variation)
+        '#F06292',  # Rose vif doux (variation)
+        '#4DB6AC'   # Turquoise vif doux (variation)
     ]
-    
-    # Créer la version pastel de toutes les couleurs
-    app_colors = [make_pastel(color) for color in app_colors_original]
     
     # Créer un mapping couleur fixe par département pour TOUS les départements
     tous_departements = set()
