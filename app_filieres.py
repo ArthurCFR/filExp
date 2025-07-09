@@ -652,12 +652,63 @@ def main():
     st.header("🗂️ Fiches d'avancement des filières")
     st.write(f"*{len(filieres_filtrees)} filière(s) affichée(s)*")
     
+    # Simple tracking des modifications non sauvegardées
+    has_unsaved_changes = st.session_state.get("has_unsaved_changes", False)
+    
+    # Gestion des dialogues de confirmation avant le rendu du radio button
+    if st.session_state.get("show_navigation_dialog", False):
+        st.warning("⚠️ Continuer sans enregistrer (toute modification sera perdue) ?")
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("Oui", key="confirm_nav_lose_changes_top"):
+                # Naviguer sans sauvegarder
+                if st.session_state.navigation_pending == "change_view":
+                    # Changer de vue - pas besoin de modification du radio, on laisse faire
+                    st.session_state.mode_precedent = st.session_state.mode_target
+                
+                st.session_state.has_unsaved_changes = False
+                st.session_state.show_navigation_dialog = False
+                st.session_state.navigation_pending = None
+                st.rerun()
+        
+        with col2:
+            if st.button("Non", key="cancel_nav_lose_changes_top"):
+                # Annuler - rester en mode édition
+                if st.session_state.navigation_pending == "change_view":
+                    # Forcer le retour à Édition pour le prochain rendu
+                    st.session_state["mode_affichage_radio"] = "Édition"
+                
+                st.session_state.show_navigation_dialog = False
+                st.session_state.navigation_pending = None
+                st.rerun()
+    
+    # Déterminer le mode d'affichage à utiliser
+    if st.session_state.get("show_navigation_dialog", False) and st.session_state.get("navigation_pending") == "change_view":
+        # En cours de dialogue pour changement de vue - rester en édition
+        mode_affichage_radio_value = "Édition"
+    else:
+        mode_affichage_radio_value = st.session_state.get("mode_affichage_radio", "Cartes")
+    
     mode_affichage = st.radio(
         "Mode d'affichage",
         ["Cartes", "Tableau", "Édition"],
         horizontal=True,
-        key="mode_affichage_radio"
+        key="mode_affichage_radio",
+        index=["Cartes", "Tableau", "Édition"].index(mode_affichage_radio_value)
     )
+    
+    # Vérifier si on quitte l'édition avec des modifications non sauvegardées
+    mode_precedent = st.session_state.get("mode_precedent", "Cartes")
+    if mode_precedent == "Édition" and mode_affichage != "Édition" and has_unsaved_changes:
+        st.session_state.show_navigation_dialog = True
+        st.session_state.navigation_pending = "change_view"
+        st.session_state.mode_target = mode_affichage
+        # Revenir au mode précédent temporairement
+        mode_affichage = "Édition"
+    else:
+        # Mettre à jour le mode précédent seulement si pas de dialogue en cours
+        st.session_state.mode_precedent = mode_affichage
     
     
     # Auto-refresh invisible - actualise automatiquement toutes les 15 secondes
@@ -887,13 +938,22 @@ def main():
             if st.session_state.filiere_editee_index >= len(filieres_keys):
                 st.session_state.filiere_editee_index = 0
             
+            # Fonction pour détecter les changements - utilise le flag simple
+            def detecter_changements(filiere_key, filiere_data):
+                """Détecte si des changements ont été faits dans les champs"""
+                return st.session_state.get("has_unsaved_changes", False)
+            
             # Interface de navigation
             col1, col2, col3 = st.columns([1, 6, 1])
             
             with col1:
                 if st.button("◀", key="nav_prev", help="Filière précédente"):
-                    st.session_state.filiere_editee_index = (st.session_state.filiere_editee_index - 1) % len(filieres_keys)
-                    st.rerun()
+                    if st.session_state.get("has_unsaved_changes", False):
+                        st.session_state.navigation_pending = "prev"
+                        st.session_state.show_navigation_dialog = True
+                    else:
+                        st.session_state.filiere_editee_index = (st.session_state.filiere_editee_index - 1) % len(filieres_keys)
+                        st.rerun()
             
             with col2:
                 filiere_a_editer = st.selectbox(
@@ -910,9 +970,36 @@ def main():
             
             with col3:
                 if st.button("▶", key="nav_next", help="Filière suivante"):
-                    st.session_state.filiere_editee_index = (st.session_state.filiere_editee_index + 1) % len(filieres_keys)
-                    st.rerun()
+                    if st.session_state.get("has_unsaved_changes", False):
+                        st.session_state.navigation_pending = "next"
+                        st.session_state.show_navigation_dialog = True
+                    else:
+                        st.session_state.filiere_editee_index = (st.session_state.filiere_editee_index + 1) % len(filieres_keys)
+                        st.rerun()
             
+            # Dialog de confirmation pour navigation de filières uniquement
+            if st.session_state.get("show_navigation_dialog", False) and st.session_state.get("navigation_pending") in ["prev", "next"]:
+                st.warning("⚠️ Continuer sans enregistrer (toute modification sera perdue) ?")
+                
+                col1, col2 = st.columns(2)
+                with col1:
+                    if st.button("Oui", key="confirm_nav_lose_changes"):
+                        # Naviguer sans sauvegarder
+                        if st.session_state.navigation_pending == "prev":
+                            st.session_state.filiere_editee_index = (st.session_state.filiere_editee_index - 1) % len(filieres_keys)
+                        elif st.session_state.navigation_pending == "next":
+                            st.session_state.filiere_editee_index = (st.session_state.filiere_editee_index + 1) % len(filieres_keys)
+                        
+                        st.session_state.has_unsaved_changes = False
+                        st.session_state.show_navigation_dialog = False
+                        st.session_state.navigation_pending = None
+                        st.rerun()
+                
+                with col2:
+                    if st.button("Non", key="cancel_nav_lose_changes"):
+                        st.session_state.show_navigation_dialog = False
+                        st.session_state.navigation_pending = None
+                        st.rerun()
             
             if filiere_a_editer:
                 filiere_data = filieres[filiere_a_editer]
@@ -1133,9 +1220,11 @@ def main():
                             events_session != events_text_original
                         )
                     
-                    # Affichage du message d'avertissement simple
                     if check_if_changed():
-                        st.warning("⚠️ ATTENTION : Vous n'avez pas enregistré vos modifications")
+                        st.session_state.has_unsaved_changes = True
+                    else:
+                        # Réinitialiser si pas de changements réels
+                        st.session_state.has_unsaved_changes = False
                     
                     # Sauvegarde uniquement quand le bouton est cliqué
                     if save_clicked:
@@ -1173,6 +1262,10 @@ def main():
                                 # Message de succès temporaire avec timestamp
                                 st.session_state["success_message"] = True
                                 st.session_state["success_timestamp"] = datetime.now().timestamp()
+                                
+                                # Marquer comme sauvegardé
+                                st.session_state.has_unsaved_changes = False
+                                
                                 st.rerun()
                     
                     # Affichage du message de succès temporaire
