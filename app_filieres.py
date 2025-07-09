@@ -425,6 +425,68 @@ def main():
         
         filieres_filtrees[key] = filiere
     
+    # Pie charts pour les accès aux outils
+    st.markdown("### 📊 Répartition des accès aux outils")
+    
+    # Préparation des données pour les pie charts
+    laposte_gpt_data = {}
+    copilot_data = {}
+    
+    for key, filiere in filieres_filtrees.items():
+        nom_filiere = filiere.get('nom', 'Filière inconnue')
+        laposte_gpt_count = filiere.get('acces', {}).get('laposte_gpt', 0)
+        copilot_count = filiere.get('acces', {}).get('copilot_licences', 0)
+        
+        if laposte_gpt_count > 0:
+            laposte_gpt_data[nom_filiere] = laposte_gpt_count
+        if copilot_count > 0:
+            copilot_data[nom_filiere] = copilot_count
+    
+    # Affichage des pie charts
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        if laposte_gpt_data:
+            import plotly.express as px
+            fig1 = px.pie(
+                values=list(laposte_gpt_data.values()),
+                names=list(laposte_gpt_data.keys()),
+                title="🔑 Accès LaPoste GPT",
+                color_discrete_sequence=px.colors.qualitative.Set3
+            )
+            fig1.update_layout(
+                height=300,
+                margin=dict(t=50, b=20, l=20, r=20),
+                font=dict(size=10),
+                showlegend=True,
+                legend=dict(orientation="v", yanchor="middle", y=0.5, xanchor="left", x=1.02)
+            )
+            fig1.update_traces(textposition='inside', textinfo='percent+label')
+            st.plotly_chart(fig1, use_container_width=True)
+        else:
+            st.info("Aucun accès LaPoste GPT configuré")
+    
+    with col2:
+        if copilot_data:
+            import plotly.express as px
+            fig2 = px.pie(
+                values=list(copilot_data.values()),
+                names=list(copilot_data.keys()),
+                title="📋 Licences Copilot",
+                color_discrete_sequence=px.colors.qualitative.Set2
+            )
+            fig2.update_layout(
+                height=300,
+                margin=dict(t=50, b=20, l=20, r=20),
+                font=dict(size=10),
+                showlegend=True,
+                legend=dict(orientation="v", yanchor="middle", y=0.5, xanchor="left", x=1.02)
+            )
+            fig2.update_traces(textposition='inside', textinfo='percent+label')
+            st.plotly_chart(fig2, use_container_width=True)
+        else:
+            st.info("Aucune licence Copilot configurée")
+    
     # Affichage des fiches
     st.header("🗂️ Fiches d'avancement des filières")
     st.write(f"*{len(filieres_filtrees)} filière(s) affichée(s)*")
