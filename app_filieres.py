@@ -448,8 +448,26 @@ def main():
         if copilot_count > 0:
             copilot_data[nom_filiere] = copilot_count
     
-    # Palette de couleurs cohérente avec l'application
-    app_colors = [
+    # Palette de couleurs cohérente avec l'application - Version pastel (30% plus claire)
+    def make_pastel(hex_color, lightness_factor=0.3):
+        """Convertit une couleur hex en version pastel"""
+        # Supprimer le # si présent
+        hex_color = hex_color.lstrip('#')
+        
+        # Convertir en RGB
+        r = int(hex_color[0:2], 16)
+        g = int(hex_color[2:4], 16)
+        b = int(hex_color[4:6], 16)
+        
+        # Éclaircir en mélangeant avec du blanc
+        r = int(r + (255 - r) * lightness_factor)
+        g = int(g + (255 - g) * lightness_factor)
+        b = int(b + (255 - b) * lightness_factor)
+        
+        # Reconvertir en hex
+        return f"#{r:02x}{g:02x}{b:02x}"
+    
+    app_colors_original = [
         '#28a745',  # Vert (prompts_deployes)
         '#007bff',  # Bleu (tests_realises)
         '#ffc107',  # Jaune (en_emergence)
@@ -461,6 +479,9 @@ def main():
         '#20c997',  # Teal
         '#6f42c1'   # Violet
     ]
+    
+    # Créer la version pastel de toutes les couleurs
+    app_colors = [make_pastel(color) for color in app_colors_original]
     
     # Créer un mapping couleur fixe par département pour TOUS les départements
     tous_departements = set()
