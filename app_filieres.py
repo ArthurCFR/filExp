@@ -556,7 +556,7 @@ def main():
                 fig1 = px.pie(
                     values=list(laposte_gpt_data.values()),
                     names=list(laposte_gpt_data.keys()),
-                    title=f"🔑 Accès LaPoste GPT <i>({total_laposte_gpt} total)</i>"
+                    title=f"🔑 Accès LaPoste GPT <i>(Total : {total_laposte_gpt})</i>"
                 )
                 
                 # Assigner les couleurs manuellement pour chaque segment
@@ -608,7 +608,7 @@ def main():
                 fig2 = px.pie(
                     values=list(copilot_data.values()),
                     names=list(copilot_data.keys()),
-                    title=f"📋 Licences Copilot <i>({total_copilot} total)</i>"
+                    title=f"📋 Licences Copilot <i>(Total : {total_copilot})</i>"
                 )
                 
                 # Assigner les couleurs manuellement pour chaque segment
