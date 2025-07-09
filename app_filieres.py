@@ -91,39 +91,17 @@ def display_filiere_card(filiere_key, filiere_data, etats_config):
                 </div>""", 
                 unsafe_allow_html=True
             )
-            
             st.markdown(
                 f"""<div style='background-color: {couleur_fond}20; 
                 padding: 10px; 
                 border-radius: 5px; 
-                border-left: 3px solid {couleur_bordure};'>
+                border-left: 3px solid {couleur_bordure};
+                margin-bottom: 10px;'>
                 <strong>🧪 Nombre de testeurs:</strong><br/>
                 {filiere_data.get('nombre_testeurs', 0)}
                 </div>""", 
                 unsafe_allow_html=True
             )
-            
-            st.markdown(
-                f"""<div style='background-color: {couleur_fond}20; 
-                padding: 10px; 
-                border-radius: 5px; 
-                border-left: 3px solid {couleur_bordure};'>
-                <strong>📈 Niveau d'autonomie:</strong><br/>
-                {filiere_data.get('niveau_autonomie', 'Non renseigné')}
-                </div>""",
-                unsafe_allow_html=True
-            )
-            st.markdown(
-                f"""<div style='background-color: {couleur_fond}20; 
-                padding: 10px; 
-                border-radius: 5px; 
-                border-left: 3px solid {couleur_bordure};'>
-                <strong>📄 Nombre de fiches d'opportunité:</strong><br/>
-                {filiere_data.get('fopp_count', 0)}
-                </div>""",
-                unsafe_allow_html=True
-            )
-        
         with col2:
             st.markdown(
                 f"""<div style='background-color: {couleur_fond}20; 
@@ -136,15 +114,37 @@ def display_filiere_card(filiere_key, filiere_data, etats_config):
                 </div>""", 
                 unsafe_allow_html=True
             )
-            
             st.markdown(
                 f"""<div style='background-color: {couleur_fond}20; 
                 padding: 10px; 
                 border-radius: 5px; 
-                border-left: 3px solid {couleur_bordure};'>
+                border-left: 3px solid {couleur_bordure};
+                margin-bottom: 10px;'>
                 <strong>📋 Licences Copilot:</strong><br/>
                 {filiere_data.get('acces', {}).get('copilot_licences', 0)}
                 </div>""", 
+                unsafe_allow_html=True
+            )
+            st.markdown(
+                f"""<div style='background-color: {couleur_fond}20; 
+                padding: 10px; 
+                border-radius: 5px; 
+                border-left: 3px solid {couleur_bordure};
+                margin-bottom: 10px;'>
+                <strong>📈 Niveau d'autonomie:</strong><br/>
+                {filiere_data.get('niveau_autonomie', 'Non renseigné')}
+                </div>""",
+                unsafe_allow_html=True
+            )
+            st.markdown(
+                f"""<div style='background-color: {couleur_fond}20; 
+                padding: 10px; 
+                border-radius: 5px; 
+                border-left: 3px solid {couleur_bordure};
+                margin-bottom: 10px;'>
+                <strong>📄 Nombre de fiches d'opportunité:</strong><br/>
+                {filiere_data.get('fopp_count', 0)}
+                </div>""",
                 unsafe_allow_html=True
             )
         
