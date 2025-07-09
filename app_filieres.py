@@ -1172,13 +1172,39 @@ def main():
                                                use_container_width=True,
                                                key="save_button_main")
                     
-                    # Marquer les changements quand un champ est modifié
-                    change_keys = [f"ref_{filiere_a_editer}", f"etat_{filiere_a_editer}", f"attention_{filiere_a_editer}", 
-                                 f"usages_{filiere_a_editer}", f"events_{filiere_a_editer}", f"refdelegues_{filiere_a_editer}",
-                                 f"collabIAGen_{filiere_a_editer}", f"collabTotal_{filiere_a_editer}", f"autonomie_{filiere_a_editer}",
-                                 f"fopp_{filiere_a_editer}", f"gpt_{filiere_a_editer}", f"copilot_{filiere_a_editer}"]
-                    if any(key in st.session_state for key in change_keys):
+                    # Marquer les changements seulement si les valeurs ont vraiment changé
+                    def check_if_changed():
+                        # Vérifier les usages phares
+                        usages_originaux = '\n'.join(filiere_data.get('usages_phares', []))
+                        usages_session = st.session_state.get(f"usages_{filiere_a_editer}", usages_originaux)
+                        
+                        # Vérifier les événements récents
+                        events_originaux = []
+                        for event in filiere_data.get('evenements_recents', []):
+                            events_originaux.append(f"{event.get('date', '')};{event.get('titre', '')};{event.get('description', '')}")
+                        events_text_original = '\n'.join(events_originaux)
+                        events_session = st.session_state.get(f"events_{filiere_a_editer}", events_text_original)
+                        
+                        return (
+                            st.session_state.get(f"ref_{filiere_a_editer}", "") != filiere_data.get('referent_metier', '') or
+                            st.session_state.get(f"refdelegues_{filiere_a_editer}", 0) != filiere_data.get('nombre_referents_delegues', 0) or
+                            st.session_state.get(f"collabIAGen_{filiere_a_editer}", 0) != filiere_data.get('nombre_collaborateurs_sensibilises', 0) or
+                            st.session_state.get(f"collabTotal_{filiere_a_editer}", 0) != filiere_data.get('nombre_collaborateurs_total', 0) or
+                            st.session_state.get(f"autonomie_{filiere_a_editer}", "") != filiere_data.get('niveau_autonomie', '') or
+                            st.session_state.get(f"fopp_{filiere_a_editer}", 0) != filiere_data.get('fopp_count', 0) or
+                            st.session_state.get(f"etat_{filiere_a_editer}", "") != filiere_data.get('etat_avancement', '') or
+                            st.session_state.get(f"gpt_{filiere_a_editer}", 0) != filiere_data.get('acces', {}).get('laposte_gpt', 0) or
+                            st.session_state.get(f"copilot_{filiere_a_editer}", 0) != filiere_data.get('acces', {}).get('copilot_licences', 0) or
+                            st.session_state.get(f"attention_{filiere_a_editer}", "") != filiere_data.get('point_attention', '') or
+                            usages_session != usages_originaux or
+                            events_session != events_text_original
+                        )
+                    
+                    if check_if_changed():
                         st.session_state.has_unsaved_changes = True
+                    else:
+                        # Réinitialiser si pas de changements réels
+                        st.session_state.has_unsaved_changes = False
                     
                     # Sauvegarde uniquement quand le bouton est cliqué
                     if save_clicked:
