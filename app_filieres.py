@@ -14,7 +14,7 @@ st.set_page_config(
 
 GIST_ID = "e5f2784739d9e2784a3f067217b25e01"  # Remplace par ton vrai ID de Gist
 FILENAME = "filieres_data.json"
-GITHUB_TOKEN = st.secrets["pat"]
+GITHUB_TOKEN = st.secrets["GITHUB_PAT"]
 
 # Champs attendus pour une filière (doit correspondre à la structure du JSON)
 FILIERE_FIELDS = {
