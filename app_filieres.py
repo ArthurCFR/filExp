@@ -261,18 +261,21 @@ def display_filiere_card(filiere_key, filiere_data, etats_config):
         point_attention = filiere_data.get('point_attention', '')
         if point_attention and point_attention != 'Aucun point d\'attention spécifique':
             st.markdown("---")
-            st.markdown(
-                f"""<div style='background-color: #fff3cd; 
-                border-left: 3px solid #ffc107; 
-                padding: 8px; 
-                border-radius: 4px;
-                margin: 5px 0;
-                font-size: 0.9em;'>
-                <strong>⚠️ Point d'attention:</strong><br/>
-                {point_attention}
-                </div>""", 
-                unsafe_allow_html=True
-            )
+            st.markdown("<strong style='font-size: 0.9em;'>⚠️ Point d'attention:</strong>", unsafe_allow_html=True)
+            # Traiter chaque ligne séparément
+            for ligne in point_attention.split('\n'):
+                if ligne.strip():
+                    st.markdown(
+                        f"""<div style='background-color: #fff3cd; 
+                        border-left: 3px solid #ffc107; 
+                        padding: 4px 8px; 
+                        border-radius: 4px;
+                        margin: 3px 0;
+                        font-size: 0.85em;'>
+                        • {ligne.strip()}
+                        </div>""", 
+                        unsafe_allow_html=True
+                    )
         
         # Usages phares
         usages = filiere_data.get('usages_phares', [])
