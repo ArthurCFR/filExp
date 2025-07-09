@@ -996,50 +996,50 @@ def main():
                     # Boutons colorés pour les états
                     etat_actuel = filiere_data.get('etat_avancement', 'a_initier')
                     
+                    # Initialiser l'état dans session_state si pas encore fait
+                    if f"etat_{filiere_a_editer}" not in st.session_state:
+                        st.session_state[f"etat_{filiere_a_editer}"] = etat_actuel
+                    
+                    # L'état sélectionné est celui du session_state (permet la réactivité)
+                    etat_selectionne = st.session_state[f"etat_{filiere_a_editer}"]
+                    
                     # Affichage des boutons en ligne avec les couleurs des états
                     col1, col2, col3, col4 = st.columns(4)
                     
-                    nouvel_etat = etat_actuel  # Par défaut, garder l'état actuel
-                    
                     with col1:
-                        couleur_avance = etats_config.get('prompts_deployes', {}).get('couleur_bordure', '#28a745')
                         if st.button("🟢 AVANCÉ", 
-                                   type="primary" if etat_actuel == 'prompts_deployes' else "secondary",
+                                   type="primary" if etat_selectionne == 'prompts_deployes' else "secondary",
                                    use_container_width=True,
                                    key=f"btn_avance_{filiere_a_editer}"):
-                            nouvel_etat = 'prompts_deployes'
                             st.session_state[f"etat_{filiere_a_editer}"] = 'prompts_deployes'
+                            st.rerun()
                     
                     with col2:
-                        couleur_inter = etats_config.get('tests_realises', {}).get('couleur_bordure', '#007bff')
                         if st.button("🔵 INTERMÉDIAIRE", 
-                                   type="primary" if etat_actuel == 'tests_realises' else "secondary",
+                                   type="primary" if etat_selectionne == 'tests_realises' else "secondary",
                                    use_container_width=True,
                                    key=f"btn_inter_{filiere_a_editer}"):
-                            nouvel_etat = 'tests_realises'
                             st.session_state[f"etat_{filiere_a_editer}"] = 'tests_realises'
+                            st.rerun()
                     
                     with col3:
-                        couleur_emergence = etats_config.get('en_emergence', {}).get('couleur_bordure', '#ffc107')
                         if st.button("🟡 EN ÉMERGENCE", 
-                                   type="primary" if etat_actuel == 'en_emergence' else "secondary",
+                                   type="primary" if etat_selectionne == 'en_emergence' else "secondary",
                                    use_container_width=True,
                                    key=f"btn_emergence_{filiere_a_editer}"):
-                            nouvel_etat = 'en_emergence'
                             st.session_state[f"etat_{filiere_a_editer}"] = 'en_emergence'
+                            st.rerun()
                     
                     with col4:
-                        couleur_initier = etats_config.get('a_initier', {}).get('couleur_bordure', '#dc3545')
                         if st.button("🔴 À INITIER", 
-                                   type="primary" if etat_actuel == 'a_initier' else "secondary",
+                                   type="primary" if etat_selectionne == 'a_initier' else "secondary",
                                    use_container_width=True,
                                    key=f"btn_initier_{filiere_a_editer}"):
-                            nouvel_etat = 'a_initier'
                             st.session_state[f"etat_{filiere_a_editer}"] = 'a_initier'
+                            st.rerun()
                     
-                    # Récupérer l'état depuis le session_state si il a été modifié
-                    if f"etat_{filiere_a_editer}" in st.session_state:
-                        nouvel_etat = st.session_state[f"etat_{filiere_a_editer}"]
+                    # L'état pour la sauvegarde
+                    nouvel_etat = st.session_state[f"etat_{filiere_a_editer}"]
                                             # Niveau d'autonomie
                     options_autonomie = [
                         "Besoin d'accompagnement faible",
