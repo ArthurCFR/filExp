@@ -348,22 +348,26 @@
   "etats_avancement": {
     "initialisation": {
       "label": "Initialisation",
-      "couleur": "#e74c3c",
+      "couleur": "#ffcccb",
+      "couleur_bordure": "#ff9999",
       "description": "Phase de démarrage"
     },
     "ateliers_planifies": {
       "label": "Ateliers de test planifiés",
-      "couleur": "#f39c12",
+      "couleur": "#ffe4b5",
+      "couleur_bordure": "#ffcc80",
       "description": "Ateliers de test organisés"
     },
     "tests_realises": {
       "label": "Tests réalisés",
-      "couleur": "#3498db",
+      "couleur": "#add8e6",
+      "couleur_bordure": "#87ceeb",
       "description": "Tests terminés avec succès"
     },
     "prompts_deployes": {
       "label": "Prompts déployés",
-      "couleur": "#27ae60",
+      "couleur": "#c8e6c9",
+      "couleur_bordure": "#a5d6a7",
       "description": "Prompts déployés auprès des testeurs"
     }
   }

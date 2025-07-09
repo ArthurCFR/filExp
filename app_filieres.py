@@ -33,10 +33,41 @@ def get_color_by_state(state, etats_config):
 def display_filiere_card(filiere_key, filiere_data, etats_config):
     """Affiche une carte pour une filière"""
     etat = filiere_data.get('etat_avancement', 'initialisation')
-    couleur = get_color_by_state(etat, etats_config)
+    etat_info = etats_config.get(etat, {})
+    couleur_fond = etat_info.get('couleur', '#f8f9fa')
+    couleur_bordure = etat_info.get('couleur_bordure', '#dee2e6')
     
-    # Utilisation de st.container pour créer une carte stylisée avec les composants natifs
-    with st.container(border=True):
+    # CSS pour le style de la carte avec couleur et bordure
+    card_style = f"""
+    <style>
+    .filiere-card {{
+        background-color: {couleur_fond};
+        border: 2px solid {couleur_bordure};
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1), 0 0 15px {couleur_bordure}40;
+    }}
+    .etat-badge {{
+        background: linear-gradient(135deg, {couleur_bordure}, {couleur_fond});
+        color: #2c3e50;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-weight: bold;
+        font-size: 14px;
+        display: inline-block;
+        margin: 10px 0;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }}
+    </style>
+    """
+    
+    st.markdown(card_style, unsafe_allow_html=True)
+    
+    # Utilisation de st.container pour créer une carte stylisée
+    with st.container(border=False):
+        st.markdown(f'<div class="filiere-card">', unsafe_allow_html=True)
+        
         # En-tête avec icône et nom
         col1, col2 = st.columns([1, 6])
         with col1:
@@ -44,9 +75,15 @@ def display_filiere_card(filiere_key, filiere_data, etats_config):
         with col2:
             st.markdown(f"### {filiere_data.get('nom', 'Filière')}")
         
-        # Badge d'état
-        etat_label = etats_config.get(etat, {}).get('label', 'État inconnu')
-        st.markdown(f"**État:** :blue[{etat_label}]")
+        # Divider après le titre
+        st.markdown("---")
+        
+        # Badge d'état plus visible
+        etat_label = etat_info.get('label', 'État inconnu')
+        st.markdown(f'<div class="etat-badge">🎯 {etat_label}</div>', unsafe_allow_html=True)
+        
+        # Divider après l'état
+        st.markdown("---")
         
         # Informations principales en deux colonnes
         col_info1, col_info2 = st.columns(2)
@@ -58,6 +95,9 @@ def display_filiere_card(filiere_key, filiere_data, etats_config):
         with col_info2:
             st.markdown(f"**🔑 Accès LaPoste GPT:** {filiere_data.get('acces', {}).get('laposte_gpt', 0)}")
             st.markdown(f"**📋 Licences Copilot:** {filiere_data.get('acces', {}).get('copilot_licences', 0)}")
+        
+        # Divider après les 4 éléments
+        st.markdown("---")
         
         # Point d'attention
         st.markdown("**⚠️ Point d'attention:**")
@@ -82,6 +122,8 @@ def display_filiere_card(filiere_key, filiere_data, etats_config):
                     st.markdown("---")
             else:
                 st.write("Aucun événement récent")
+        
+        st.markdown('</div>', unsafe_allow_html=True)
 
 def main():
     # Chargement des données
