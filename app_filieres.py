@@ -14,7 +14,7 @@ st.set_page_config(
 
 GIST_ID = "e5f2784739d9e2784a3f067217b25e01"
 FILENAME = "filieres_data.json"
-GITHUB_TOKEN = st.secrets.get("GITHUB_PAT", None)
+GITHUB_TOKEN = st.secrets["GITHUB_PAT"]
 
 # Champs attendus pour une filière (doit correspondre à la structure du JSON)
 FILIERE_FIELDS = {
@@ -52,10 +52,8 @@ def migrate_filiere_fields(filiere):
 def load_data():
     url = f"https://api.github.com/gists/{GIST_ID}"
     
-    # Use authentication if available (higher rate limit)
-    headers = {}
-    if GITHUB_TOKEN:
-        headers = {"Authorization": f"token {GITHUB_TOKEN}"}
+    # Use authentication for higher rate limit
+    headers = {"Authorization": f"token {GITHUB_TOKEN}"}
     
     try:
         r = requests.get(url, headers=headers)
@@ -80,9 +78,25 @@ def load_data():
         return None
 
 def save_data(data):
-    st.warning("⚠️ Sauvegarde désactivée : Gist en lecture seule")
-    st.info("💡 Pour activer la sauvegarde, contactez l'administrateur")
-    return False
+    url = f"https://api.github.com/gists/{GIST_ID}"
+    headers = {"Authorization": f"token {GITHUB_TOKEN}"}
+    payload = {
+        "files": {
+            FILENAME: {
+                "content": json.dumps(data, indent=2, ensure_ascii=False)
+            }
+        }
+    }
+    try:
+        r = requests.patch(url, headers=headers, data=json.dumps(payload))
+        r.raise_for_status()
+        st.success("✅ Données sauvegardées avec succès!")
+        # Clear cache to reload fresh data
+        st.cache_data.clear()
+        return True
+    except Exception as e:
+        st.error(f"❌ Erreur lors de la sauvegarde: {e}")
+        return False
 
 def display_filiere_card(filiere_key, filiere_data, etats_config):
     """Affiche une carte pour une filière dans un container Streamlit natif"""
@@ -417,13 +431,14 @@ def main():
     st.write(f"*{len(filieres_filtrees)} filière(s) affichée(s)*")
     
     # Mode d'affichage
-    st.info("💡 Mode édition désactivé : consultez l'administrateur pour modifier les données")
-    
     mode_affichage = st.radio(
         "Mode d'affichage",
-        ["Cartes", "Tableau"],
+        ["Cartes", "Tableau", "Édition"],
         horizontal=True
     )
+    
+    if mode_affichage == "Édition":
+        st.info("📝 Mode édition activé - Vos modifications seront sauvegardées automatiquement")
     
     if mode_affichage == "Cartes":
         # Recharge les données pour garantir la fraîcheur
