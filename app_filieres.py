@@ -2,6 +2,7 @@ import streamlit as st
 import json
 import os
 from datetime import datetime
+import requests
 
 # Configuration de la page
 st.set_page_config(
@@ -11,8 +12,9 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Chemin vers le fichier JSON
-DATA_FILE = "filieres_data.json"
+GIST_ID = "9e017851284fb1a035a5ea40cec9d3e6"  # Remplace par ton vrai ID de Gist
+FILENAME = "filieres_data.json"
+GITHUB_TOKEN = st.secrets["pat"]
 
 # Champs attendus pour une filière (doit correspondre à la structure du JSON)
 FILIERE_FIELDS = {
@@ -47,26 +49,35 @@ def migrate_filiere_fields(filiere):
     return filiere
 
 def load_data():
-    """Charge les données depuis le fichier JSON et migre les filières si besoin."""
-    if os.path.exists(DATA_FILE):
-        with open(DATA_FILE, 'r', encoding='utf-8') as f:
-            data = json.load(f)
-        # Migration à la volée des filières
-        if 'filieres' in data:
-            for key, filiere in data['filieres'].items():
-                data['filieres'][key] = migrate_filiere_fields(filiere)
-        return data
-    return {}
+    url = f"https://api.github.com/gists/{GIST_ID}"
+    headers = {"Authorization": f"token {GITHUB_TOKEN}"}
+    r = requests.get(url, headers=headers)
+    r.raise_for_status()
+    files = r.json()["files"]
+    content = files[FILENAME]["content"]
+    data = json.loads(content)
+    # Migration à la volée des filières (comme avant)
+    if 'filieres' in data:
+        for key, filiere in data['filieres'].items():
+            data['filieres'][key] = migrate_filiere_fields(filiere)
+    return data
 
 def save_data(data):
-    import os
+    url = f"https://api.github.com/gists/{GIST_ID}"
+    headers = {"Authorization": f"token {GITHUB_TOKEN}"}
+    payload = {
+        "files": {
+            FILENAME: {
+                "content": json.dumps(data, indent=2, ensure_ascii=False)
+            }
+        }
+    }
     try:
-        print(f"Enregistrement dans : {os.path.abspath(DATA_FILE)}")
-        with open(DATA_FILE, 'w', encoding='utf-8') as f:
-            json.dump(data, f, indent=2, ensure_ascii=False)
-        print("Sauvegarde réussie.")
+        r = requests.patch(url, headers=headers, data=json.dumps(payload))
+        r.raise_for_status()
+        print("Sauvegarde Gist réussie.")
     except Exception as e:
-        print(f"Erreur lors de la sauvegarde : {e}")
+        print(f"Erreur lors de la sauvegarde Gist : {e}")
 
 def display_filiere_card(filiere_key, filiere_data, etats_config):
     """Affiche une carte pour une filière dans un container Streamlit natif"""
