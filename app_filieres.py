@@ -965,6 +965,10 @@ def main():
                 
                 with col2:
                     if st.button("Non", key="cancel_nav_lose_changes"):
+                        # Si c'était un changement de vue, remettre le radio button à "Édition"
+                        if st.session_state.navigation_pending == "change_view":
+                            st.session_state["mode_affichage_radio"] = "Édition"
+                        
                         st.session_state.show_navigation_dialog = False
                         st.session_state.navigation_pending = None
                         st.rerun()
