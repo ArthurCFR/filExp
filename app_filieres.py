@@ -48,7 +48,7 @@ def migrate_filiere_fields(filiere):
                     filiere[k][subk] = subv
     return filiere
 
-@st.cache_data(ttl=30)  # Cache for 30 seconds only
+@st.cache_data(ttl=10)  # Cache for 10 seconds only
 def load_data():
     url = f"https://api.github.com/gists/{GIST_ID}"
     
@@ -338,16 +338,9 @@ def main():
     filieres = data.get('filieres', {})
     etats_config = data.get('etats_avancement', {})
     
-    # Titre principal avec bouton de rafraîchissement
-    col1, col2 = st.columns([4, 1])
-    with col1:
-        st.title("📊 Suivi des Filières Support - La Poste")
-        st.markdown("### Expérimentations sur les outils IA Génératifs")
-    with col2:
-        st.markdown("") # Spacer
-        if st.button("🔄 Actualiser", help="Recharger les dernières données"):
-            st.cache_data.clear()
-            st.rerun()
+    # Titre principal
+    st.title("📊 Suivi des Filières Support - La Poste")
+    st.markdown("### Expérimentations sur les outils IA Génératifs")
     
     # Sidebar pour les filtres
     st.sidebar.header("🔍 Filtres")
@@ -447,20 +440,14 @@ def main():
     if mode_affichage == "Édition":
         st.info("📝 Mode édition activé - Vos modifications seront sauvegardées automatiquement")
     
-    # Auto-refresh option
-    with st.sidebar:
-        st.markdown("---")
-        auto_refresh = st.checkbox("🔄 Actualisation automatique", value=False, help="Actualise les données toutes les 30 secondes")
-        if auto_refresh:
-            st.markdown("*Actualisation automatique activée*")
-            # Add auto-refresh script
-            st.markdown("""
-            <script>
-            setTimeout(function(){
-                window.location.reload();
-            }, 30000);
-            </script>
-            """, unsafe_allow_html=True)
+    # Auto-refresh invisible - actualise automatiquement toutes les 15 secondes
+    st.markdown("""
+    <script>
+    setTimeout(function(){
+        window.location.reload();
+    }, 15000);
+    </script>
+    """, unsafe_allow_html=True)
     
     if mode_affichage == "Cartes":
         # Recharge les données pour garantir la fraîcheur
