@@ -70,6 +70,17 @@ def display_filiere_card(filiere_key, filiere_data, etats_config):
                 st.write(f"• {usage}")
         else:
             st.write("Aucun usage phare défini")
+        
+        # Événements récents (section expandable)
+        with st.expander("📅 Événements récents"):
+            evenements = filiere_data.get('evenements_recents', [])
+            if evenements:
+                for event in evenements:
+                    st.markdown(f"**{event.get('date', 'Date inconnue')}** - {event.get('titre', 'Titre inconnu')}")
+                    st.write(event.get('description', 'Aucune description'))
+                    st.markdown("---")
+            else:
+                st.write("Aucun événement récent")
 
 def main():
     # Chargement des données
@@ -249,14 +260,32 @@ def main():
                     value=filiere_data.get('acces', {}).get('copilot_licences', 0)
                 )
             
+            # Section Usages phares (éditable)
+            st.write("**🌟 Usages phares**")
+            usages_actuels = filiere_data.get('usages_phares', [])
+            
+            # Convertir la liste en texte (un usage par ligne)
+            usages_text = '\n'.join(usages_actuels)
+            
+            nouveaux_usages_text = st.text_area(
+                "Usages phares (un par ligne)",
+                value=usages_text,
+                height=100,
+                help="Entrez un usage phare par ligne"
+            )
+            
             # Bouton de sauvegarde
             if st.button("💾 Sauvegarder les modifications", type="primary"):
+                # Convertir le texte des usages en liste
+                nouveaux_usages = [usage.strip() for usage in nouveaux_usages_text.split('\n') if usage.strip()]
+                
                 # Mise à jour des données
                 filieres[filiere_a_editer]['referent_metier'] = nouveau_referent
                 filieres[filiere_a_editer]['nombre_testeurs'] = nouveau_nb_testeurs
                 filieres[filiere_a_editer]['etat_avancement'] = nouvel_etat
                 filieres[filiere_a_editer]['acces']['laposte_gpt'] = nouveau_laposte_gpt
                 filieres[filiere_a_editer]['acces']['copilot_licences'] = nouvelles_licences
+                filieres[filiere_a_editer]['usages_phares'] = nouveaux_usages
                 
                 # Sauvegarde dans le fichier JSON
                 save_data(data)

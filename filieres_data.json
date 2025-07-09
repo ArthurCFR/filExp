@@ -22,7 +22,19 @@
       "prompt_experts": {
         "accessible": 0,
         "construction": 0
-      }
+      },
+      "evenements_recents": [
+        {
+          "date": "2024-01-15",
+          "titre": "Formation des équipes aux outils IA",
+          "description": "Session de formation de 3h sur l'utilisation de LaPoste GPT pour l'optimisation des négociations"
+        },
+        {
+          "date": "2024-01-10",
+          "titre": "Déploiement des premiers prompts",
+          "description": "Mise en production de 5 prompts spécialisés pour l'analyse des contrats fournisseurs"
+        }
+      ]
     },
     "communication": {
       "nom": "Communication",
@@ -46,7 +58,19 @@
       "prompt_experts": {
         "accessible": 1,
         "construction": 0
-      }
+      },
+      "evenements_recents": [
+        {
+          "date": "2024-01-20",
+          "titre": "Lancement de la campagne interne",
+          "description": "Démarrage de la campagne de communication interne sur les outils IA avec 200 collaborateurs informés"
+        },
+        {
+          "date": "2024-01-12",
+          "titre": "Atelier créatif IA",
+          "description": "Atelier de co-création avec l'équipe pour développer des prompts spécialisés en communication"
+        }
+      ]
     },
     "comptabilite": {
       "nom": "Comptabilité",
@@ -70,7 +94,8 @@
       "prompt_experts": {
         "accessible": 0,
         "construction": 0
-      }
+      },
+      "evenements_recents": []
     },
     "conformite": {
       "nom": "Conformité",
@@ -94,7 +119,8 @@
       "prompt_experts": {
         "accessible": 1,
         "construction": 1
-      }
+      },
+      "evenements_recents": []
     },
     "controle_gestion": {
       "nom": "Contrôle de Gestion",
@@ -118,7 +144,8 @@
       "prompt_experts": {
         "accessible": 0,
         "construction": 0
-      }
+      },
+      "evenements_recents": []
     },
     "direction_juridique": {
       "nom": "Direction Juridique",
@@ -142,7 +169,19 @@
       "prompt_experts": {
         "accessible": 2,
         "construction": 4
-      }
+      },
+      "evenements_recents": [
+        {
+          "date": "2024-01-18",
+          "titre": "Mise à jour des prompts juridiques",
+          "description": "4 nouveaux prompts déployés pour l'analyse contractuelle et la veille réglementaire"
+        },
+        {
+          "date": "2024-01-08",
+          "titre": "Formation spécialisée équipe juridique",
+          "description": "Formation de 2 jours sur l'utilisation éthique de l'IA dans le conseil juridique"
+        }
+      ]
     },
     "environnement_travail": {
       "nom": "Environnement de Travail",
@@ -166,7 +205,8 @@
       "prompt_experts": {
         "accessible": 0,
         "construction": 0
-      }
+      },
+      "evenements_recents": []
     },
     "finance": {
       "nom": "Finance",
@@ -190,7 +230,8 @@
       "prompt_experts": {
         "accessible": 0,
         "construction": 0
-      }
+      },
+      "evenements_recents": []
     },
     "immobilier": {
       "nom": "Immobilier",
@@ -214,7 +255,8 @@
       "prompt_experts": {
         "accessible": 4,
         "construction": 2
-      }
+      },
+      "evenements_recents": []
     },
     "rh": {
       "nom": "Ressources Humaines",
@@ -238,7 +280,19 @@
       "prompt_experts": {
         "accessible": 2,
         "construction": 1
-      }
+      },
+      "evenements_recents": [
+        {
+          "date": "2024-01-22",
+          "titre": "Bilan des premiers tests",
+          "description": "Réunion de retour d'expérience avec les 12 testeurs, taux de satisfaction de 85%"
+        },
+        {
+          "date": "2024-01-05",
+          "titre": "Sélection des testeurs pilotes",
+          "description": "Sélection et formation de 12 testeurs RH pour l'expérimentation des outils IA"
+        }
+      ]
     },
     "darg": {
       "nom": "DARG",
@@ -262,7 +316,8 @@
       "prompt_experts": {
         "accessible": 1,
         "construction": 0
-      }
+      },
+      "evenements_recents": []
     },
     "securite": {
       "nom": "Sécurité",
@@ -286,7 +341,8 @@
       "prompt_experts": {
         "accessible": 0,
         "construction": 0
-      }
+      },
+      "evenements_recents": []
     }
   },
   "etats_avancement": {
