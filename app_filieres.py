@@ -653,8 +653,103 @@ def main():
                 use_container_width=True,
                 hide_index=True
             )
-            # Export CSV
-            csv = df_sorted.to_csv(index=False, sep=';', encoding='utf-8')
+            # Export CSV avec nettoyage des émojis et caractères spéciaux
+            def clean_text_for_csv(text):
+                """Nettoie le texte en supprimant les émojis et caractères spéciaux pour l'export CSV"""
+                if not isinstance(text, str):
+                    return str(text)
+                
+                # Mapping des émojis vers du texte
+                emoji_mapping = {
+                    '🟢': 'AVANCE',
+                    '🔵': 'INTERMEDIAIRE', 
+                    '🟡': 'EN_EMERGENCE',
+                    '🔴': 'A_INITIER',
+                    '📁': '',
+                    '📊': '',
+                    '📢': '',
+                    '💰': '',
+                    '⚖️': '',
+                    '🏛️': '',
+                    '🔧': '',
+                    '🏢': '',
+                    '📋': '',
+                    '🎯': '',
+                    '🛡️': '',
+                    '🚀': '',
+                    '🌐': '',
+                    '📱': '',
+                    '🔒': '',
+                    '👥': '',
+                    '🎨': '',
+                    '📈': '',
+                    '🔍': '',
+                    '💡': '',
+                    '🏆': '',
+                    '⚡': '',
+                    '📝': '',
+                    '🎪': '',
+                    '🚗': '',
+                    '🏠': '',
+                    '🎭': '',
+                    '🎬': '',
+                    '📺': '',
+                    '🎵': '',
+                    '🎤': '',
+                    '🎸': '',
+                    '🎹': '',
+                    '🎨': '',
+                    '🖼️': '',
+                    '📚': '',
+                    '📖': '',
+                    '✏️': '',
+                    '🖊️': '',
+                    '🖋️': '',
+                    '🖌️': '',
+                    '🖍️': '',
+                    '📐': '',
+                    '📏': '',
+                    '📌': '',
+                    '📍': '',
+                    '🗂️': '',
+                    '🗃️': '',
+                    '🗄️': '',
+                    '🗑️': '',
+                    '🔒': '',
+                    '🔓': '',
+                    '🔐': '',
+                    '🔑': '',
+                    '🗝️': '',
+                    '⚠️': 'ATTENTION',
+                    '❌': 'NON',
+                    '✅': 'OUI',
+                    '❓': 'QUESTION',
+                    '❗': 'IMPORTANT'
+                }
+                
+                # Remplacer les émojis
+                cleaned = text
+                for emoji, replacement in emoji_mapping.items():
+                    cleaned = cleaned.replace(emoji, replacement)
+                
+                # Supprimer les caractères spéciaux restants (emojis non mappés)
+                import re
+                cleaned = re.sub(r'[^\w\s\-.,;:()àâäéèêëïîôöùûüÿçÀÂÄÉÈÊËÏÎÔÖÙÛÜŸÇ]', '', cleaned)
+                
+                # Nettoyer les espaces multiples
+                cleaned = re.sub(r'\s+', ' ', cleaned).strip()
+                
+                return cleaned
+            
+            # Créer une copie du DataFrame pour l'export
+            df_export = df_sorted.copy()
+            
+            # Nettoyer toutes les colonnes de type string
+            for col in df_export.columns:
+                if df_export[col].dtype == 'object':
+                    df_export[col] = df_export[col].astype(str).apply(clean_text_for_csv)
+            
+            csv = df_export.to_csv(index=False, sep=';', encoding='utf-8')
             st.download_button(
                 label="📥 Exporter en CSV",
                 data=csv,
