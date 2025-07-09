@@ -470,14 +470,9 @@ def main():
     ]
     
     # Affichage des pie charts
-    col1, col2 = st.columns(2)
+    col1, col_divider, col2 = st.columns([5, 1, 5])
     
     with col1:
-        # Container avec fond gris clair et bords arrondis
-        st.markdown("""
-        <div style='background-color: #f8f9fa; padding: 20px; border-radius: 15px; margin-bottom: 20px;'>
-        """, unsafe_allow_html=True)
-        
         if laposte_gpt_data:
             if PLOTLY_AVAILABLE:
                 fig1 = px.pie(
@@ -510,15 +505,14 @@ def main():
                     st.write(f"• {filiere}: {count} accès ({percentage:.1f}%)")
         else:
             st.info("Aucun accès LaPoste GPT configuré")
-        
-        # Fermeture du container
-        st.markdown("</div>", unsafe_allow_html=True)
+    
+    with col_divider:
+        # Divider vertical léger
+        st.markdown("""
+        <div style='height: 300px; width: 1px; background-color: #dee2e6; margin: 0 auto;'></div>
+        """, unsafe_allow_html=True)
     
     with col2:
-        # Container avec fond gris clair et bords arrondis
-        st.markdown("""
-        <div style='background-color: #f8f9fa; padding: 20px; border-radius: 15px; margin-bottom: 20px;'>
-        """, unsafe_allow_html=True)
         if copilot_data:
             if PLOTLY_AVAILABLE:
                 fig2 = px.pie(
@@ -551,9 +545,6 @@ def main():
                     st.write(f"• {filiere}: {count} licences ({percentage:.1f}%)")
         else:
             st.info("Aucune licence Copilot configurée")
-        
-        # Fermeture du container
-        st.markdown("</div>", unsafe_allow_html=True)
     
     # Affichage des fiches
     st.header("🗂️ Fiches d'avancement des filières")
