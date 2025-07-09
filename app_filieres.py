@@ -90,7 +90,6 @@ def save_data(data):
     try:
         r = requests.patch(url, headers=headers, data=json.dumps(payload))
         r.raise_for_status()
-        st.success("✅ Données sauvegardées avec succès!")
         # Clear cache to reload fresh data
         st.cache_data.clear()
         return True
@@ -736,10 +735,19 @@ def main():
                             filiere['evenements_recents'] = nouveaux_evenements
                             
                             # Sauvegarde
-                            save_data(data)
-                            
-                            st.session_state["edition_success"] = True
-                            st.rerun()
+                            if save_data(data):
+                                # Message de succès temporaire avec timestamp
+                                st.session_state["success_message"] = True
+                                st.session_state["success_timestamp"] = datetime.now().timestamp()
+                                st.rerun()
+                    
+                    # Affichage du message de succès temporaire
+                    if st.session_state.get("success_message", False):
+                        current_time = datetime.now().timestamp()
+                        if current_time - st.session_state.get("success_timestamp", 0) < 6:
+                            st.success("✅ Modifications sauvegardées avec succès!")
+                        else:
+                            st.session_state["success_message"] = False
         else:
             st.info("Aucune filière ne correspond aux filtres sélectionnés.")
     
@@ -747,17 +755,6 @@ def main():
     st.markdown("---")
     st.markdown(f"*Dernière mise à jour: {datetime.now().strftime('%d/%m/%Y %H:%M')}*")
 
-    # Affichage du toast de succès si paramètre dans l'URL
-    query_params = st.query_params
-    if query_params.get("success") == ["1"]:
-        st.success("✅ Modifications sauvegardées avec succès!", icon="✅")
-        del st.query_params["success"]
-
-    # --- Correction message succès édition ---
-    # Dans le mode édition, remplacer l'utilisation des query params par un st.session_state pour afficher le message de succès
-    if st.session_state.get("edition_success"):
-        st.success("Modifications sauvegardées avec succès!", icon="✅")
-        st.session_state["edition_success"] = False
 
 if __name__ == "__main__":
     main()
