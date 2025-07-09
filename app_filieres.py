@@ -14,6 +14,7 @@ st.set_page_config(
 
 GIST_ID = "e5f2784739d9e2784a3f067217b25e01"
 FILENAME = "filieres_data.json"
+GITHUB_TOKEN = st.secrets.get("GITHUB_PAT", None)
 
 # Champs attendus pour une filière (doit correspondre à la structure du JSON)
 FILIERE_FIELDS = {
@@ -47,11 +48,17 @@ def migrate_filiere_fields(filiere):
                     filiere[k][subk] = subv
     return filiere
 
+@st.cache_data(ttl=300)  # Cache for 5 minutes
 def load_data():
     url = f"https://api.github.com/gists/{GIST_ID}"
-    # No authentication needed for public gists
+    
+    # Use authentication if available (higher rate limit)
+    headers = {}
+    if GITHUB_TOKEN:
+        headers = {"Authorization": f"token {GITHUB_TOKEN}"}
+    
     try:
-        r = requests.get(url)
+        r = requests.get(url, headers=headers)
         r.raise_for_status()
         files = r.json()["files"]
         content = files[FILENAME]["content"]
@@ -65,6 +72,8 @@ def load_data():
         st.error(f"Erreur HTTP lors du chargement du Gist: {e}")
         st.error(f"Status code: {r.status_code}")
         st.error(f"Response: {r.text}")
+        if r.status_code == 403 and "rate limit" in r.text:
+            st.error("💡 Limite d'API atteinte. L'administrateur doit configurer un token GitHub pour une meilleure performance.")
         return None
     except Exception as e:
         st.error(f"Erreur lors du chargement des données: {str(e)}")
