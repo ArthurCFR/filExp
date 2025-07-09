@@ -59,9 +59,14 @@ def load_data():
     return {}
 
 def save_data(data):
-    """Sauvegarde les données dans le fichier JSON"""
-    with open(DATA_FILE, 'w', encoding='utf-8') as f:
-        json.dump(data, f, indent=2, ensure_ascii=False)
+    import os
+    try:
+        print(f"Enregistrement dans : {os.path.abspath(DATA_FILE)}")
+        with open(DATA_FILE, 'w', encoding='utf-8') as f:
+            json.dump(data, f, indent=2, ensure_ascii=False)
+        print("Sauvegarde réussie.")
+    except Exception as e:
+        print(f"Erreur lors de la sauvegarde : {e}")
 
 def display_filiere_card(filiere_key, filiere_data, etats_config):
     """Affiche une carte pour une filière dans un container Streamlit natif"""
