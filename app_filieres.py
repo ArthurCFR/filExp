@@ -49,12 +49,15 @@ def display_filiere_card(filiere_key, filiere_data, etats_config):
     # CSS personnalisé pour cette carte spécifique
     card_css = f"""
     <style>
-    .stContainer > div:has(> div.filiere-card-{filiere_key}) {{
+    .filiere-card-container-{filiere_key} {{
         background: linear-gradient(135deg, {rgba_light} 0%, {rgba_medium} 100%);
-        border: 2px solid {couleur_bordure};
+        border: 3px solid {couleur_bordure};
         border-radius: 15px;
         padding: 1rem;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        margin-bottom: 1.5rem;
+        position: relative;
+        overflow: hidden;
     }}
     .filiere-header-{filiere_key} {{
         background: linear-gradient(90deg, {couleur_fond} 0%, {couleur_bordure} 100%);
@@ -63,6 +66,14 @@ def display_filiere_card(filiere_key, filiere_data, etats_config):
         border-radius: 10px;
         margin: -1rem -1rem 1rem -1rem;
         text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+    }}
+    .filiere-header-{filiere_key} h3 {{
+        margin: 0;
+        display: flex;
+        align-items: center;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }}
     .etat-badge-{filiere_key} {{
         background: {couleur_bordure};
@@ -87,20 +98,24 @@ def display_filiere_card(filiere_key, filiere_data, etats_config):
     
     st.markdown(card_css, unsafe_allow_html=True)
     
-    # Container principal avec classe unique
-    with st.container(border=False):
-        st.markdown(f'<div class="filiere-card-{filiere_key}">', unsafe_allow_html=True)
-        
-        # En-tête coloré avec icône et nom
-        header_html = f"""
-        <div class="filiere-header-{filiere_key}">
-            <h3 style="margin: 0; display: flex; align-items: center;">
-                <span style="font-size: 1.5em; margin-right: 10px;">{filiere_data.get('icon', '📁')}</span>
-                {filiere_data.get('nom', 'Filière')}
-            </h3>
-        </div>
-        """
-        st.markdown(header_html, unsafe_allow_html=True)
+    # Container principal avec bordure et classe unique
+    st.markdown(f'<div class="filiere-card-container-{filiere_key}">', unsafe_allow_html=True)
+    
+    # En-tête coloré avec icône et nom (avec gestion du dépassement)
+    nom_filiere = filiere_data.get('nom', 'Filière')
+    # Limiter la longueur du nom si nécessaire
+    if len(nom_filiere) > 25:
+        nom_filiere = nom_filiere[:25] + "..."
+    
+    header_html = f"""
+    <div class="filiere-header-{filiere_key}">
+        <h3>
+            <span style="font-size: 1.5em; margin-right: 10px;">{filiere_data.get('icon', '📁')}</span>
+            <span>{nom_filiere}</span>
+        </h3>
+    </div>
+    """
+    st.markdown(header_html, unsafe_allow_html=True)
         
         # Badge d'état
         etat_label = etat_info.get('label', 'État inconnu')
@@ -176,6 +191,7 @@ def display_filiere_card(filiere_key, filiere_data, etats_config):
                 st.write("Aucun événement récent")
         
         st.markdown('</div>', unsafe_allow_html=True)
+        st.markdown("", unsafe_allow_html=True)  # Espace supplémentaire entre les cartes
 
 def main():
     # Style global pour améliorer l'apparence
@@ -301,10 +317,11 @@ def main():
     )
     
     if mode_affichage == "Cartes":
-        # Affichage en cartes (2 colonnes)
-        cols = st.columns(2)
+        # Affichage en cartes (2 colonnes avec espacement)
+        cols = st.columns([1, 0.05, 1])  # Ajout d'une colonne centrale pour l'espacement
         for i, (key, filiere) in enumerate(filieres_filtrees.items()):
-            with cols[i % 2]:
+            col_index = 0 if i % 2 == 0 else 2  # Colonnes 0 et 2, en sautant la colonne centrale
+            with cols[col_index]:
                 display_filiere_card(key, filiere, etats_config)
     
     elif mode_affichage == "Tableau":
