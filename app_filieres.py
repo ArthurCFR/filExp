@@ -630,6 +630,10 @@ def main():
             'en_emergence': '🟡 EN ÉMERGENCE',
             'a_initier': '🔴 À INITIER'
         }
+        
+        # Ordre de tri des états (du plus avancé au moins avancé)
+        ordre_etats = ['prompts_deployes', 'tests_realises', 'en_emergence', 'a_initier']
+        
         table_data = []
         for key, filiere in filieres_filtrees.items():
             etat = filiere.get('etat_avancement', 'initialisation')
@@ -643,11 +647,13 @@ def main():
                 'Niveau autonomie': filiere.get('niveau_autonomie', ''),
                 'Fiches opportunité': filiere.get('fopp_count', 0),
                 'LaPoste GPT': filiere.get('acces', {}).get('laposte_gpt', 0),
-                'Copilot': filiere.get('acces', {}).get('copilot_licences', 0)
+                'Copilot': filiere.get('acces', {}).get('copilot_licences', 0),
+                'ordre_tri': ordre_etats.index(etat) if etat in ordre_etats else 999
             })
         if table_data:
             df = pd.DataFrame(table_data)
-            df_sorted = df.sort_values(by=['État'])
+            # Trier par ordre d'avancement (avancé en haut)
+            df_sorted = df.sort_values(by=['ordre_tri', 'Filière']).drop('ordre_tri', axis=1)
             st.dataframe(
                 df_sorted,
                 use_container_width=True,
