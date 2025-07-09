@@ -182,7 +182,10 @@ def display_filiere_card(filiere_key, filiere_data, etats_config):
                         save_data(data)
                         st.success("Événement ajouté avec succès !")
                         st.rerun()
-            evenements = filiere_data.get('evenements_recents', [])
+            # Recharger les données pour afficher la liste à jour
+            data = load_data()
+            filieres = data.get('filieres', {})
+            evenements = filieres.get(filiere_key, {}).get('evenements_recents', [])
             if evenements:
                 for i, event in enumerate(evenements):
                     if i > 0:
@@ -558,7 +561,7 @@ def main():
     st.markdown(f"*Dernière mise à jour: {datetime.now().strftime('%d/%m/%Y %H:%M')}*")
 
     # Affichage du toast de succès si paramètre dans l'URL
-    query_params = st.query_params
+    query_params = dict(st.query_params)
     if query_params.get("success") == ["1"]:
         st.success("✅ Modifications sauvegardées avec succès!", icon="✅")
         st.experimental_set_query_params(success=None)
