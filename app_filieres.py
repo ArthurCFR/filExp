@@ -97,9 +97,20 @@ def display_filiere_card(filiere_key, filiere_data, etats_config):
                 border-radius: 5px; 
                 border-left: 3px solid {couleur_bordure};
                 margin-bottom: 10px;'>
-                <strong>🧪 Nombre de testeurs:</strong><br/>
-                {filiere_data.get('nombre_testeurs', 0)}
-                </div>""", 
+                <strong>📈 Niveau d'autonomie:</strong><br/>
+                {filiere_data.get('niveau_autonomie', 'Non renseigné')}
+                </div>""",
+                unsafe_allow_html=True
+            )
+            st.markdown(
+                f"""<div style='background-color: {couleur_fond}20; 
+                padding: 10px; 
+                border-radius: 5px; 
+                border-left: 3px solid {couleur_bordure};
+                margin-bottom: 10px;'>
+                <strong>👥 Nombre de référents métier délégués:</strong><br/>
+                {filiere_data.get('nombre_referents_delegues', 0)}
+                </div>""",
                 unsafe_allow_html=True
             )
         with col2:
@@ -123,17 +134,6 @@ def display_filiere_card(filiere_key, filiere_data, etats_config):
                 <strong>📋 Licences Copilot:</strong><br/>
                 {filiere_data.get('acces', {}).get('copilot_licences', 0)}
                 </div>""", 
-                unsafe_allow_html=True
-            )
-            st.markdown(
-                f"""<div style='background-color: {couleur_fond}20; 
-                padding: 10px; 
-                border-radius: 5px; 
-                border-left: 3px solid {couleur_bordure};
-                margin-bottom: 10px;'>
-                <strong>📈 Niveau d'autonomie:</strong><br/>
-                {filiere_data.get('niveau_autonomie', 'Non renseigné')}
-                </div>""",
                 unsafe_allow_html=True
             )
             st.markdown(
@@ -471,12 +471,12 @@ def main():
                             key=f"ref_{filiere_a_editer}"
                         )
                         
-                        # Nombre de testeurs
-                        nouveau_nb_testeurs = st.number_input(
-                            "Nombre de testeurs",
+                        # Nombre de référents métier délégués
+                        nouveau_nb_referents_delegues = st.number_input(
+                            "Nombre de référents métier délégués",
                             min_value=0,
-                            value=filiere_data.get('nombre_testeurs', 0),
-                            key=f"test_{filiere_a_editer}"
+                            value=filiere_data.get('nombre_referents_delegues', 0),
+                            key=f"refdelegues_{filiere_a_editer}"
                         )
                         
                         # Niveau d'autonomie
@@ -597,7 +597,7 @@ def main():
                             
                             # Mise à jour
                             filieres[filiere_a_editer]['referent_metier'] = nouveau_referent
-                            filieres[filiere_a_editer]['nombre_testeurs'] = nouveau_nb_testeurs
+                            filieres[filiere_a_editer]['nombre_referents_delegues'] = nouveau_nb_referents_delegues
                             filieres[filiere_a_editer]['niveau_autonomie'] = nouveau_niveau_autonomie
                             filieres[filiere_a_editer]['fopp_count'] = nouveau_fopp_count
                             filieres[filiere_a_editer]['etat_avancement'] = nouvel_etat
