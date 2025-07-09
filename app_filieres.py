@@ -102,6 +102,27 @@ def display_filiere_card(filiere_key, filiere_data, etats_config):
                 </div>""", 
                 unsafe_allow_html=True
             )
+            
+            st.markdown(
+                f"""<div style='background-color: {couleur_fond}20; 
+                padding: 10px; 
+                border-radius: 5px; 
+                border-left: 3px solid {couleur_bordure};'>
+                <strong>📈 Niveau d'autonomie:</strong><br/>
+                {filiere_data.get('niveau_autonomie', 'Non renseigné')}
+                </div>""",
+                unsafe_allow_html=True
+            )
+            st.markdown(
+                f"""<div style='background-color: {couleur_fond}20; 
+                padding: 10px; 
+                border-radius: 5px; 
+                border-left: 3px solid {couleur_bordure};'>
+                <strong>📄 Nombre de fiches d'opportunité:</strong><br/>
+                {filiere_data.get('fopp_count', 0)}
+                </div>""",
+                unsafe_allow_html=True
+            )
         
         with col2:
             st.markdown(
@@ -458,6 +479,20 @@ def main():
                             key=f"test_{filiere_a_editer}"
                         )
                         
+                        # Niveau d'autonomie
+                        nouveau_niveau_autonomie = st.text_input(
+                            "Niveau d'autonomie",
+                            value=filiere_data.get('niveau_autonomie', ''),
+                            key=f"autonomie_{filiere_a_editer}"
+                        )
+                        # Nombre de fiches d'opportunité
+                        nouveau_fopp_count = st.number_input(
+                            "Nombre de fiches d'opportunité",
+                            min_value=0,
+                            value=filiere_data.get('fopp_count', 0),
+                            key=f"fopp_{filiere_a_editer}"
+                        )
+                        
                         # État d'avancement
                         etats_labels_custom = {
                             'prompts_deployes': 'AVANCÉ',
@@ -553,6 +588,8 @@ def main():
                             # Mise à jour
                             filieres[filiere_a_editer]['referent_metier'] = nouveau_referent
                             filieres[filiere_a_editer]['nombre_testeurs'] = nouveau_nb_testeurs
+                            filieres[filiere_a_editer]['niveau_autonomie'] = nouveau_niveau_autonomie
+                            filieres[filiere_a_editer]['fopp_count'] = nouveau_fopp_count
                             filieres[filiere_a_editer]['etat_avancement'] = nouvel_etat
                             filieres[filiere_a_editer]['acces']['laposte_gpt'] = nouveau_laposte_gpt
                             filieres[filiere_a_editer]['acces']['copilot_licences'] = nouvelles_licences
