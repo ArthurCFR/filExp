@@ -14,11 +14,48 @@ st.set_page_config(
 # Chemin vers le fichier JSON
 DATA_FILE = "filieres_data.json"
 
+# Champs attendus pour une filière (doit correspondre à la structure du JSON)
+FILIERE_FIELDS = {
+    "nom": "Nom de la filière",
+    "icon": "📁",
+    "referent_metier": "",
+    "nombre_referents_delegues": 0,
+    "nombre_collaborateurs_sensibilises": 0,
+    "nombre_collaborateurs_total": 0,
+    "etat_avancement": "initialisation",
+    "niveau_autonomie": "",
+    "fopp_count": 0,
+    "description": "",
+    "point_attention": "",
+    "usages_phares": [],
+    "acces": {"laposte_gpt": 0, "copilot_licences": 0},
+    "evenements_recents": []
+}
+
+def migrate_filiere_fields(filiere):
+    """Complète dynamiquement les champs manquants d'une filière avec les valeurs par défaut attendues."""
+    for k, v in FILIERE_FIELDS.items():
+        if k not in filiere:
+            filiere[k] = v if not isinstance(v, dict) and not isinstance(v, list) else v.copy() if isinstance(v, list) else v.copy()
+        elif isinstance(v, dict):
+            # Pour les sous-dictionnaires (ex: acces)
+            for subk, subv in v.items():
+                if k not in filiere or not isinstance(filiere[k], dict):
+                    filiere[k] = {}
+                if subk not in filiere[k]:
+                    filiere[k][subk] = subv
+    return filiere
+
 def load_data():
-    """Charge les données depuis le fichier JSON"""
+    """Charge les données depuis le fichier JSON et migre les filières si besoin."""
     if os.path.exists(DATA_FILE):
         with open(DATA_FILE, 'r', encoding='utf-8') as f:
-            return json.load(f)
+            data = json.load(f)
+        # Migration à la volée des filières
+        if 'filieres' in data:
+            for key, filiere in data['filieres'].items():
+                data['filieres'][key] = migrate_filiere_fields(filiere)
+        return data
     return {}
 
 def save_data(data):
@@ -637,7 +674,7 @@ def main():
                                         })
                             
                             # Mise à jour explicite de tous les champs dans la filière
-                            filiere = filieres[filiere_a_editer]
+                            filiere = migrate_filiere_fields(filieres[filiere_a_editer])
                             filiere['referent_metier'] = nouveau_referent
                             filiere['nombre_referents_delegues'] = nouveau_nb_referents_delegues
                             filiere['nombre_collaborateurs_sensibilises'] = nouveau_nb_collab_sensibilises
