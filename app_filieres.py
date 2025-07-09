@@ -110,7 +110,18 @@ def display_filiere_card(filiere_key, filiere_data, etats_config):
                 border-radius: 5px; 
                 border-left: 3px solid {couleur_bordure};
                 margin-bottom: 10px;'>
-                <strong>👥 Nombre de collaborateurs sensibilisés à l'IAGen:</strong><br/>
+                <strong>🧑‍💼 Nombre de référents métier délégués:</strong><br/>
+                {filiere_data.get('nombre_referents_delegues', 0)}
+                </div>""",
+                unsafe_allow_html=True
+            )
+            st.markdown(
+                f"""<div style='background-color: {couleur_fond}20; 
+                padding: 10px; 
+                border-radius: 5px; 
+                border-left: 3px solid {couleur_bordure};
+                margin-bottom: 10px;'>
+                <strong>🎓 Nombre de collaborateurs sensibilisés à l'IAGen:</strong><br/>
                 {filiere_data.get('nombre_collaborateurs_sensibilises', 0)}
                 </div>""",
                 unsafe_allow_html=True
@@ -121,8 +132,8 @@ def display_filiere_card(filiere_key, filiere_data, etats_config):
                 border-radius: 5px; 
                 border-left: 3px solid {couleur_bordure};
                 margin-bottom: 10px;'>
-                <strong>👥 Nombre de référents métier délégués:</strong><br/>
-                {filiere_data.get('nombre_referents_delegues', 0)}
+                <strong>👥 Nombre total de collaborateurs dans la filière:</strong><br/>
+                {filiere_data.get('nombre_collaborateurs_total', 0)}
                 </div>""",
                 unsafe_allow_html=True
             )
@@ -628,6 +639,15 @@ def main():
                             filieres[filiere_a_editer]['point_attention'] = nouveau_point_attention
                             filieres[filiere_a_editer]['usages_phares'] = nouveaux_usages
                             filieres[filiere_a_editer]['evenements_recents'] = nouveaux_evenements
+                            
+                            # Nombre total de collaborateurs dans la filière
+                            nouveau_nb_collab_total = st.number_input(
+                                "Nombre total de collaborateurs dans la filière",
+                                min_value=0,
+                                value=filiere_data.get('nombre_collaborateurs_total', 0),
+                                key=f"collabTotal_{filiere_a_editer}"
+                            )
+                            filieres[filiere_a_editer]['nombre_collaborateurs_total'] = nouveau_nb_collab_total
                             
                             # Sauvegarde
                             save_data(data)
