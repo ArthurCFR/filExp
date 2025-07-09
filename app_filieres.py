@@ -257,7 +257,7 @@ def display_filiere_card(filiere_key, filiere_data, etats_config):
                 unsafe_allow_html=True
             )
         
-        # Point d'attention
+        # Points d'attention
         point_attention = filiere_data.get('point_attention', '')
         if point_attention and point_attention != 'Aucun point d\'attention spécifique':
             st.markdown("---")
@@ -276,6 +276,7 @@ def display_filiere_card(filiere_key, filiere_data, etats_config):
                         </div>""", 
                         unsafe_allow_html=True
                     )
+            st.markdown("---")
         
         # Usages phares
         usages = filiere_data.get('usages_phares', [])
