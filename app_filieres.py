@@ -653,9 +653,9 @@ def main():
                 use_container_width=True,
                 hide_index=True
             )
-            # Export CSV avec nettoyage des émojis et caractères spéciaux
+            # Export CSV avec nettoyage des émojis et normalisation des accents
             def clean_text_for_csv(text):
-                """Nettoie le texte en supprimant les émojis et caractères spéciaux pour l'export CSV"""
+                """Nettoie le texte en supprimant les émojis et normalisant les accents pour l'export CSV"""
                 if not isinstance(text, str):
                     return str(text)
                 
@@ -688,38 +688,6 @@ def main():
                     '🏆': '',
                     '⚡': '',
                     '📝': '',
-                    '🎪': '',
-                    '🚗': '',
-                    '🏠': '',
-                    '🎭': '',
-                    '🎬': '',
-                    '📺': '',
-                    '🎵': '',
-                    '🎤': '',
-                    '🎸': '',
-                    '🎹': '',
-                    '🎨': '',
-                    '🖼️': '',
-                    '📚': '',
-                    '📖': '',
-                    '✏️': '',
-                    '🖊️': '',
-                    '🖋️': '',
-                    '🖌️': '',
-                    '🖍️': '',
-                    '📐': '',
-                    '📏': '',
-                    '📌': '',
-                    '📍': '',
-                    '🗂️': '',
-                    '🗃️': '',
-                    '🗄️': '',
-                    '🗑️': '',
-                    '🔒': '',
-                    '🔓': '',
-                    '🔐': '',
-                    '🔑': '',
-                    '🗝️': '',
                     '⚠️': 'ATTENTION',
                     '❌': 'NON',
                     '✅': 'OUI',
@@ -732,9 +700,37 @@ def main():
                 for emoji, replacement in emoji_mapping.items():
                     cleaned = cleaned.replace(emoji, replacement)
                 
-                # Supprimer les caractères spéciaux restants (emojis non mappés)
+                # Normaliser les accents pour éviter les problèmes d'encodage
+                import unicodedata
+                # Décomposer les caractères Unicode puis les recomposer
+                cleaned = unicodedata.normalize('NFD', cleaned)
+                cleaned = unicodedata.normalize('NFC', cleaned)
+                
+                # Mapping manuel des caractères problématiques pour CSV
+                accent_mapping = {
+                    'à': 'a', 'á': 'a', 'â': 'a', 'ã': 'a', 'ä': 'a', 'å': 'a',
+                    'è': 'e', 'é': 'e', 'ê': 'e', 'ë': 'e',
+                    'ì': 'i', 'í': 'i', 'î': 'i', 'ï': 'i',
+                    'ò': 'o', 'ó': 'o', 'ô': 'o', 'õ': 'o', 'ö': 'o',
+                    'ù': 'u', 'ú': 'u', 'û': 'u', 'ü': 'u',
+                    'ý': 'y', 'ÿ': 'y',
+                    'ç': 'c', 'ñ': 'n',
+                    'À': 'A', 'Á': 'A', 'Â': 'A', 'Ã': 'A', 'Ä': 'A', 'Å': 'A',
+                    'È': 'E', 'É': 'E', 'Ê': 'E', 'Ë': 'E',
+                    'Ì': 'I', 'Í': 'I', 'Î': 'I', 'Ï': 'I',
+                    'Ò': 'O', 'Ó': 'O', 'Ô': 'O', 'Õ': 'O', 'Ö': 'O',
+                    'Ù': 'U', 'Ú': 'U', 'Û': 'U', 'Ü': 'U',
+                    'Ý': 'Y', 'Ÿ': 'Y',
+                    'Ç': 'C', 'Ñ': 'N'
+                }
+                
+                # Remplacer les caractères accentués
+                for accented, plain in accent_mapping.items():
+                    cleaned = cleaned.replace(accented, plain)
+                
+                # Supprimer les caractères spéciaux restants
                 import re
-                cleaned = re.sub(r'[^\w\s\-.,;:()àâäéèêëïîôöùûüÿçÀÂÄÉÈÊËÏÎÔÖÙÛÜŸÇ]', '', cleaned)
+                cleaned = re.sub(r'[^\w\s\-.,;:()]', '', cleaned)
                 
                 # Nettoyer les espaces multiples
                 cleaned = re.sub(r'\s+', ' ', cleaned).strip()
@@ -749,10 +745,11 @@ def main():
                 if df_export[col].dtype == 'object':
                     df_export[col] = df_export[col].astype(str).apply(clean_text_for_csv)
             
-            csv = df_export.to_csv(index=False, sep=';', encoding='utf-8')
+            # Utiliser l'encodage latin-1 pour éviter les problèmes d'accents
+            csv = df_export.to_csv(index=False, sep=';', encoding='latin-1', errors='replace')
             st.download_button(
                 label="📥 Exporter en CSV",
-                data=csv,
+                data=csv.encode('latin-1'),
                 file_name='filieres_tableau.csv',
                 mime='text/csv'
             )
