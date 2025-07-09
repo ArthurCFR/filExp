@@ -4,6 +4,19 @@ import os
 from datetime import datetime
 import requests
 
+# Try to import plotting libraries
+try:
+    import plotly.express as px
+    PLOTLY_AVAILABLE = True
+except ImportError:
+    PLOTLY_AVAILABLE = False
+
+try:
+    import matplotlib.pyplot as plt
+    MATPLOTLIB_AVAILABLE = True
+except ImportError:
+    MATPLOTLIB_AVAILABLE = False
+
 # Configuration de la page
 st.set_page_config(
     page_title="Suivi des Filières Support - La Poste",
@@ -446,44 +459,70 @@ def main():
     col1, col2 = st.columns(2)
     
     with col1:
+        st.markdown("**🔑 Accès LaPoste GPT**")
         if laposte_gpt_data:
-            import plotly.express as px
-            fig1 = px.pie(
-                values=list(laposte_gpt_data.values()),
-                names=list(laposte_gpt_data.keys()),
-                title="🔑 Accès LaPoste GPT",
-                color_discrete_sequence=px.colors.qualitative.Set3
-            )
-            fig1.update_layout(
-                height=300,
-                margin=dict(t=50, b=20, l=20, r=20),
-                font=dict(size=10),
-                showlegend=True,
-                legend=dict(orientation="v", yanchor="middle", y=0.5, xanchor="left", x=1.02)
-            )
-            fig1.update_traces(textposition='inside', textinfo='percent+label')
-            st.plotly_chart(fig1, use_container_width=True)
+            if PLOTLY_AVAILABLE:
+                fig1 = px.pie(
+                    values=list(laposte_gpt_data.values()),
+                    names=list(laposte_gpt_data.keys()),
+                    title="🔑 Accès LaPoste GPT",
+                    color_discrete_sequence=px.colors.qualitative.Set3
+                )
+                fig1.update_layout(
+                    height=300,
+                    margin=dict(t=50, b=20, l=20, r=20),
+                    font=dict(size=10),
+                    showlegend=True,
+                    legend=dict(orientation="v", yanchor="middle", y=0.5, xanchor="left", x=1.02)
+                )
+                fig1.update_traces(textposition='inside', textinfo='percent+label')
+                st.plotly_chart(fig1, use_container_width=True)
+            elif MATPLOTLIB_AVAILABLE:
+                fig, ax = plt.subplots(figsize=(6, 4))
+                ax.pie(list(laposte_gpt_data.values()), labels=list(laposte_gpt_data.keys()), autopct='%1.1f%%')
+                ax.set_title("🔑 Accès LaPoste GPT")
+                st.pyplot(fig)
+                plt.close(fig)
+            else:
+                # Fallback: simple text display
+                total = sum(laposte_gpt_data.values())
+                for filiere, count in laposte_gpt_data.items():
+                    percentage = (count / total) * 100
+                    st.write(f"• {filiere}: {count} accès ({percentage:.1f}%)")
         else:
             st.info("Aucun accès LaPoste GPT configuré")
     
     with col2:
+        st.markdown("**📋 Licences Copilot**")
         if copilot_data:
-            import plotly.express as px
-            fig2 = px.pie(
-                values=list(copilot_data.values()),
-                names=list(copilot_data.keys()),
-                title="📋 Licences Copilot",
-                color_discrete_sequence=px.colors.qualitative.Set2
-            )
-            fig2.update_layout(
-                height=300,
-                margin=dict(t=50, b=20, l=20, r=20),
-                font=dict(size=10),
-                showlegend=True,
-                legend=dict(orientation="v", yanchor="middle", y=0.5, xanchor="left", x=1.02)
-            )
-            fig2.update_traces(textposition='inside', textinfo='percent+label')
-            st.plotly_chart(fig2, use_container_width=True)
+            if PLOTLY_AVAILABLE:
+                fig2 = px.pie(
+                    values=list(copilot_data.values()),
+                    names=list(copilot_data.keys()),
+                    title="📋 Licences Copilot",
+                    color_discrete_sequence=px.colors.qualitative.Set2
+                )
+                fig2.update_layout(
+                    height=300,
+                    margin=dict(t=50, b=20, l=20, r=20),
+                    font=dict(size=10),
+                    showlegend=True,
+                    legend=dict(orientation="v", yanchor="middle", y=0.5, xanchor="left", x=1.02)
+                )
+                fig2.update_traces(textposition='inside', textinfo='percent+label')
+                st.plotly_chart(fig2, use_container_width=True)
+            elif MATPLOTLIB_AVAILABLE:
+                fig, ax = plt.subplots(figsize=(6, 4))
+                ax.pie(list(copilot_data.values()), labels=list(copilot_data.keys()), autopct='%1.1f%%')
+                ax.set_title("📋 Licences Copilot")
+                st.pyplot(fig)
+                plt.close(fig)
+            else:
+                # Fallback: simple text display
+                total = sum(copilot_data.values())
+                for filiere, count in copilot_data.items():
+                    percentage = (count / total) * 100
+                    st.write(f"• {filiere}: {count} licences ({percentage:.1f}%)")
         else:
             st.info("Aucune licence Copilot configurée")
     
