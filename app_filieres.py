@@ -290,22 +290,77 @@ def main():
     )
     
     if mode_affichage == "Cartes":
-        # Affichage en cartes (2 colonnes avec gap)
-        cols = st.columns(2, gap="medium")
-        for i, (key, filiere) in enumerate(filieres_filtrees.items()):
-            with cols[i % 2]:
-                display_filiere_card(key, filiere, etats_config)
+        # Mapping des états avec les nouveaux textes
+        etats_labels_custom = {
+            'prompts_deployes': 'AVANCÉ',
+            'tests_realises': 'INTERMÉDIAIRE', 
+            'ateliers_test_planifies': 'NAISSANT',
+            'initialisation': 'À ENGAGER'
+        }
+        
+        etats_descriptions = {
+            'prompts_deployes': 'Les COSUI sont réguliers et les expérimentations en cours',
+            'tests_realises': 'Échanges en cours avec les référents métiers - premiers COSUI et/ou quelques expérimentations en démarrage',
+            'ateliers_test_planifies': 'Des opportunités IAGen ont été identifiées - pas de COSUI ni d\'expérimentation en cours',
+            'initialisation': 'Filière à engager (pas ou peu de FOPP, contact à initier avec un référent métier)'
+        }
+        
+        # Grouper les filières par état
+        filieres_par_etat = {}
+        for key, filiere in filieres_filtrees.items():
+            etat = filiere.get('etat_avancement', 'initialisation')
+            if etat not in filieres_par_etat:
+                filieres_par_etat[etat] = []
+            filieres_par_etat[etat].append((key, filiere))
+        
+        # Ordre des états (du plus avancé au moins avancé)
+        ordre_etats = ['prompts_deployes', 'tests_realises', 'ateliers_test_planifies', 'initialisation']
+        
+        # Afficher les filières groupées par état
+        for etat in ordre_etats:
+            if etat in filieres_par_etat and filieres_par_etat[etat]:
+                # En-tête de la section avec couleur
+                etat_info = etats_config.get(etat, {})
+                couleur_bordure = etat_info.get('couleur_bordure', '#dee2e6')
+                
+                st.markdown(
+                    f"""<div style='background-color: {couleur_bordure}; 
+                    color: white; 
+                    padding: 15px; 
+                    border-radius: 10px; 
+                    margin: 20px 0 10px 0;'>
+                    <h3 style='margin: 0; color: white;'>📊 {etats_labels_custom.get(etat, 'État inconnu')}</h3>
+                    <p style='margin: 5px 0 0 0; font-size: 0.9em; color: rgba(255,255,255,0.9);'>
+                    {etats_descriptions.get(etat, '')}
+                    </p>
+                    </div>""", 
+                    unsafe_allow_html=True
+                )
+                
+                # Afficher les cartes de cet état en colonnes
+                cols = st.columns(2, gap="medium")
+                for i, (key, filiere) in enumerate(filieres_par_etat[etat]):
+                    with cols[i % 2]:
+                        display_filiere_card(key, filiere, etats_config)
     
     elif mode_affichage == "Tableau":
         # Affichage en tableau
         import pandas as pd
+        
+        # Mapping des états pour le tableau
+        etats_labels_custom = {
+            'prompts_deployes': 'AVANCÉ',
+            'tests_realises': 'INTERMÉDIAIRE',
+            'ateliers_test_planifies': 'NAISSANT',
+            'initialisation': 'À ENGAGER'
+        }
         
         table_data = []
         for key, filiere in filieres_filtrees.items():
             etat = filiere.get('etat_avancement', 'initialisation')
             table_data.append({
                 'Filière': f"{filiere.get('icon', '📁')} {filiere.get('nom', 'Filière')}",
-                'État': etats_config.get(etat, {}).get('label', 'État inconnu'),
+                'État': etats_labels_custom.get(etat, etats_config.get(etat, {}).get('label', 'État inconnu')),
                 'Référent': filiere.get('referent_metier', 'Non défini'),
                 'Testeurs': filiere.get('nombre_testeurs', 0),
                 'LaPoste GPT': filiere.get('acces', {}).get('laposte_gpt', 0),
