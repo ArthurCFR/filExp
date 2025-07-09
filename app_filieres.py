@@ -1075,10 +1075,10 @@ def main():
                             key=f"copilot_{filiere_a_editer}"
                         )
                     
-                    # Point d'attention
-                    st.markdown("**⚠️ Point d'attention**")
+                    # Points d'attention
+                    st.markdown("**⚠️ Points d'attention**")
                     nouveau_point_attention = st.text_area(
-                        "Point d'attention",
+                        "Points d'attention",
                         value=filiere_data.get('point_attention', ''),
                         height=80,
                         placeholder="Décrivez les points nécessitant une attention particulière...",
