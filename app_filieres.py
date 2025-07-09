@@ -521,8 +521,24 @@ def main():
                 with st.container(border=True):
                     st.subheader(f"Édition : {filiere_data.get('icon', '📁')} {filiere_data.get('nom', 'Filière')}")
                     
-                    col1, col2 = st.columns(2)
+                    # --- État d'avancement placé à part, en haut ---
+                    etats_labels_custom = {
+                        'prompts_deployes': 'AVANCÉ',
+                        'tests_realises': 'INTERMÉDIAIRE',
+                        'ateliers_planifies': 'NAISSANT',
+                        'initialisation': 'À ENGAGER'
+                    }
+                    st.markdown("**🎯 État d'avancement**")
+                    nouvel_etat = st.selectbox(
+                        "État d'avancement",
+                        list(etats_config.keys()),
+                        index=list(etats_config.keys()).index(filiere_data.get('etat_avancement', 'initialisation')),
+                        format_func=lambda x: etats_labels_custom.get(x, etats_config.get(x, {}).get('label', x)) or str(x),
+                        key=f"etat_{filiere_a_editer}"
+                    )
+                    st.markdown("---")
                     
+                    col1, col2 = st.columns(2)
                     with col1:
                         st.markdown("**📝 Informations générales**")
                         
@@ -579,22 +595,6 @@ def main():
                             min_value=0,
                             value=filiere_data.get('fopp_count', 0),
                             key=f"fopp_{filiere_a_editer}"
-                        )
-                        
-                        # État d'avancement
-                        etats_labels_custom = {
-                            'prompts_deployes': 'AVANCÉ',
-                            'tests_realises': 'INTERMÉDIAIRE',
-                            'ateliers_planifies': 'NAISSANT',
-                            'initialisation': 'À ENGAGER'
-                        }
-                        
-                        nouvel_etat = st.selectbox(
-                            "État d'avancement",
-                            list(etats_config.keys()),
-                            index=list(etats_config.keys()).index(filiere_data.get('etat_avancement', 'initialisation')),
-                            format_func=lambda x: etats_labels_custom.get(x, etats_config.get(x, {}).get('label', x)),
-                            key=f"etat_{filiere_a_editer}"
                         )
                     
                     with col2:
