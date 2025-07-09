@@ -467,6 +467,7 @@ def main():
         # Reconvertir en hex
         return f"#{r:02x}{g:02x}{b:02x}"
     
+    # Palette étendue avec suffisamment de couleurs pour toutes les filières
     app_colors_original = [
         '#28a745',  # Vert (prompts_deployes)
         '#007bff',  # Bleu (tests_realises)
@@ -477,7 +478,37 @@ def main():
         '#e83e8c',  # Rose
         '#fd7e14',  # Orange
         '#20c997',  # Teal
-        '#6f42c1'   # Violet
+        '#6f42c1',  # Violet
+        '#795548',  # Marron
+        '#607d8b',  # Bleu gris
+        '#ff9800',  # Orange profond
+        '#4caf50',  # Vert clair
+        '#2196f3',  # Bleu clair
+        '#9c27b0',  # Violet profond
+        '#f44336',  # Rouge profond
+        '#00bcd4',  # Cyan clair
+        '#8bc34a',  # Vert lime
+        '#ff5722',  # Orange rouge
+        '#3f51b5',  # Indigo
+        '#9e9e9e',  # Gris moyen
+        '#cddc39',  # Lime
+        '#ffeb3b',  # Jaune clair
+        '#ff9688',  # Rouge clair
+        '#80cbc4',  # Teal clair
+        '#ce93d8',  # Violet clair
+        '#fff176',  # Jaune très clair
+        '#a5d6a7',  # Vert très clair
+        '#90caf9',  # Bleu très clair
+        '#f8bbd9',  # Rose clair
+        '#d7ccc8',  # Beige
+        '#b39ddb',  # Lavande
+        '#ffcc02',  # Or
+        '#ff6f00',  # Orange foncé
+        '#1de9b6',  # Turquoise
+        '#7c4dff',  # Violet électrique
+        '#ff1744',  # Rouge vif
+        '#00e676',  # Vert vif
+        '#2979ff'   # Bleu vif
     ]
     
     # Créer la version pastel de toutes les couleurs
@@ -491,6 +522,10 @@ def main():
     
     # Trier les départements pour un ordre cohérent
     departements_ordonnes = sorted(tous_departements)
+    
+    # Vérifier qu'il y a assez de couleurs
+    if len(departements_ordonnes) > len(app_colors):
+        st.warning(f"⚠️ Il y a {len(departements_ordonnes)} filières mais seulement {len(app_colors)} couleurs disponibles. Certaines couleurs seront répétées.")
     
     # Créer un mapping département -> couleur FIXE pour tous les départements
     couleur_par_departement = {}
