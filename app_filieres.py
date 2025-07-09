@@ -462,17 +462,38 @@ def main():
         '#6f42c1'   # Violet
     ]
     
+    # Créer un mapping couleur fixe par département
+    tous_departements = set()
+    for key, filiere in filieres_filtrees.items():
+        nom_filiere = filiere.get('nom', 'Filière inconnue')
+        laposte_gpt_count = filiere.get('acces', {}).get('laposte_gpt', 0)
+        copilot_count = filiere.get('acces', {}).get('copilot_licences', 0)
+        
+        if laposte_gpt_count > 0 or copilot_count > 0:
+            tous_departements.add(nom_filiere)
+    
+    # Trier les départements pour un ordre cohérent
+    departements_ordonnes = sorted(tous_departements)
+    
+    # Créer un mapping département -> couleur
+    couleur_par_departement = {}
+    for i, dept in enumerate(departements_ordonnes):
+        couleur_par_departement[dept] = app_colors[i % len(app_colors)]
+    
     # Affichage des pie charts
     col1, col_divider, col2 = st.columns([5, 1, 5])
     
     with col1:
         if laposte_gpt_data:
             if PLOTLY_AVAILABLE:
+                # Créer la séquence de couleurs dans l'ordre des données
+                couleurs_laposte = [couleur_par_departement[dept] for dept in laposte_gpt_data.keys()]
+                
                 fig1 = px.pie(
                     values=list(laposte_gpt_data.values()),
                     names=list(laposte_gpt_data.keys()),
                     title="🔑 Accès LaPoste GPT",
-                    color_discrete_sequence=app_colors
+                    color_discrete_sequence=couleurs_laposte
                 )
                 fig1.update_layout(
                     height=300,
@@ -484,9 +505,12 @@ def main():
                 fig1.update_traces(textposition='inside', textinfo='percent+label')
                 st.plotly_chart(fig1, use_container_width=True)
             elif MATPLOTLIB_AVAILABLE:
+                # Créer la séquence de couleurs pour matplotlib
+                couleurs_laposte = [couleur_par_departement[dept] for dept in laposte_gpt_data.keys()]
+                
                 fig, ax = plt.subplots(figsize=(6, 4))
                 ax.pie(list(laposte_gpt_data.values()), labels=list(laposte_gpt_data.keys()), 
-                       autopct='%1.1f%%', colors=app_colors[:len(laposte_gpt_data)])
+                       autopct='%1.1f%%', colors=couleurs_laposte)
                 ax.set_title("🔑 Accès LaPoste GPT")
                 st.pyplot(fig)
                 plt.close(fig)
@@ -508,11 +532,14 @@ def main():
     with col2:
         if copilot_data:
             if PLOTLY_AVAILABLE:
+                # Créer la séquence de couleurs dans l'ordre des données
+                couleurs_copilot = [couleur_par_departement[dept] for dept in copilot_data.keys()]
+                
                 fig2 = px.pie(
                     values=list(copilot_data.values()),
                     names=list(copilot_data.keys()),
                     title="📋 Licences Copilot",
-                    color_discrete_sequence=app_colors
+                    color_discrete_sequence=couleurs_copilot
                 )
                 fig2.update_layout(
                     height=300,
@@ -524,9 +551,12 @@ def main():
                 fig2.update_traces(textposition='inside', textinfo='percent+label')
                 st.plotly_chart(fig2, use_container_width=True)
             elif MATPLOTLIB_AVAILABLE:
+                # Créer la séquence de couleurs pour matplotlib
+                couleurs_copilot = [couleur_par_departement[dept] for dept in copilot_data.keys()]
+                
                 fig, ax = plt.subplots(figsize=(6, 4))
                 ax.pie(list(copilot_data.values()), labels=list(copilot_data.keys()), 
-                       autopct='%1.1f%%', colors=app_colors[:len(copilot_data)])
+                       autopct='%1.1f%%', colors=couleurs_copilot)
                 ax.set_title("📋 Licences Copilot")
                 st.pyplot(fig)
                 plt.close(fig)
