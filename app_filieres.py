@@ -313,6 +313,29 @@ def main():
     st.header("🗂️ Fiches d'avancement des filières")
     st.write(f"*{len(filieres_filtrees)} filière(s) affichée(s)*")
     
+    # Datavisualisation avant l'affichage des fiches
+    import pandas as pd
+    st.subheader("📊 Visualisation des filières")
+    # Pie chart : répartition des filières par état
+    etat_labels = []
+    etat_counts_list = []
+    for etat_key in etats_config.keys():
+        label = etats_config[etat_key].get('label', etat_key)
+        etat_labels.append(label)
+        etat_counts_list.append(etat_counts.get(etat_key, 0))
+    pie_df = pd.DataFrame({"État": etat_labels, "Nombre": etat_counts_list})
+    st.write("**Répartition des filières par état d'avancement**")
+    st.bar_chart(pie_df.set_index("État"))
+    # Affichage tabulaire pour complément
+    st.dataframe(pie_df, use_container_width=True)
+    # Bar chart : nombre de testeurs par filière
+    testeurs_df = pd.DataFrame({
+        "Filière": [f.get('nom', k) for k, f in filieres.items()],
+        "Testeurs": [f.get('nombre_testeurs', 0) for f in filieres.values()]
+    })
+    st.write("**Nombre de testeurs par filière**")
+    st.bar_chart(testeurs_df.set_index("Filière"))
+    
     # Mode d'affichage
     mode_affichage = st.radio(
         "Mode d'affichage",
@@ -321,6 +344,11 @@ def main():
     )
     
     if mode_affichage == "Cartes":
+        # Recharge les données pour garantir la fraîcheur
+        data = load_data()
+        filieres = data.get('filieres', {})
+        etats_config = data.get('etats_avancement', {})
+        
         # Mapping des états avec les nouveaux textes
         etats_labels_custom = {
             'prompts_deployes': 'AVANCÉ',
@@ -576,7 +604,7 @@ def main():
     # --- Correction message succès édition ---
     # Dans le mode édition, remplacer l'utilisation des query params par un st.session_state pour afficher le message de succès
     if st.session_state.get("edition_success"):
-        st.success("✅ Modifications sauvegardées avec succès!", icon="✅")
+        st.success("Modifications sauvegardées avec succès!", icon="✅")
         st.session_state["edition_success"] = False
 
 if __name__ == "__main__":
