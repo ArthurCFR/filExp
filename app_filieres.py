@@ -12,7 +12,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-GIST_ID = "9e017851284fb1a035a5ea40cec9d3e6"  # Remplace par ton vrai ID de Gist
+GIST_ID = st.secrets["GIST_ID"]
 FILENAME = "filieres_data.json"
 GITHUB_TOKEN = st.secrets["GITHUB_PAT"]
 
@@ -51,16 +51,25 @@ def migrate_filiere_fields(filiere):
 def load_data():
     url = f"https://api.github.com/gists/{GIST_ID}"
     headers = {"Authorization": f"token {GITHUB_TOKEN}"}
-    r = requests.get(url, headers=headers)
-    r.raise_for_status()
-    files = r.json()["files"]
-    content = files[FILENAME]["content"]
-    data = json.loads(content)
-    # Migration à la volée des filières (comme avant)
-    if 'filieres' in data:
-        for key, filiere in data['filieres'].items():
-            data['filieres'][key] = migrate_filiere_fields(filiere)
-    return data
+    try:
+        r = requests.get(url, headers=headers)
+        r.raise_for_status()
+        files = r.json()["files"]
+        content = files[FILENAME]["content"]
+        data = json.loads(content)
+        # Migration à la volée des filières (comme avant)
+        if 'filieres' in data:
+            for key, filiere in data['filieres'].items():
+                data['filieres'][key] = migrate_filiere_fields(filiere)
+        return data
+    except requests.exceptions.HTTPError as e:
+        st.error(f"Erreur HTTP lors du chargement du Gist: {e}")
+        st.error(f"Status code: {r.status_code}")
+        st.error(f"Response: {r.text}")
+        return None
+    except Exception as e:
+        st.error(f"Erreur lors du chargement des données: {str(e)}")
+        return None
 
 def save_data(data):
     url = f"https://api.github.com/gists/{GIST_ID}"
