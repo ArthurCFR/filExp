@@ -512,6 +512,14 @@ def main():
                             key=f"refdelegues_{filiere_a_editer}"
                         )
                         
+                        # Nombre total de collaborateurs dans la filière
+                        nouveau_nb_collab_total = st.number_input(
+                            "Nombre total de collaborateurs dans la filière",
+                            min_value=0,
+                            value=filiere_data.get('nombre_collaborateurs_total', 0),
+                            key=f"collabTotal_{filiere_a_editer}"
+                        )
+                        
                         # Niveau d'autonomie
                         options_autonomie = [
                             "Besoin d'accompagnement faible",
@@ -628,27 +636,20 @@ def main():
                                             'description': parties[2].strip()
                                         })
                             
-                            # Mise à jour
-                            filieres[filiere_a_editer]['referent_metier'] = nouveau_referent
-                            filieres[filiere_a_editer]['nombre_collaborateurs_sensibilises'] = nouveau_nb_collab_sensibilises
-                            filieres[filiere_a_editer]['nombre_referents_delegues'] = nouveau_nb_referents_delegues
-                            filieres[filiere_a_editer]['niveau_autonomie'] = nouveau_niveau_autonomie
-                            filieres[filiere_a_editer]['fopp_count'] = nouveau_fopp_count
-                            filieres[filiere_a_editer]['etat_avancement'] = nouvel_etat
-                            filieres[filiere_a_editer]['acces']['laposte_gpt'] = nouveau_laposte_gpt
-                            filieres[filiere_a_editer]['acces']['copilot_licences'] = nouvelles_licences
-                            filieres[filiere_a_editer]['point_attention'] = nouveau_point_attention
-                            filieres[filiere_a_editer]['usages_phares'] = nouveaux_usages
-                            filieres[filiere_a_editer]['evenements_recents'] = nouveaux_evenements
-                            
-                            # Nombre total de collaborateurs dans la filière
-                            nouveau_nb_collab_total = st.number_input(
-                                "Nombre total de collaborateurs dans la filière",
-                                min_value=0,
-                                value=filiere_data.get('nombre_collaborateurs_total', 0),
-                                key=f"collabTotal_{filiere_a_editer}"
-                            )
-                            filieres[filiere_a_editer]['nombre_collaborateurs_total'] = nouveau_nb_collab_total
+                            # Mise à jour explicite de tous les champs dans la filière
+                            filiere = filieres[filiere_a_editer]
+                            filiere['referent_metier'] = nouveau_referent
+                            filiere['nombre_referents_delegues'] = nouveau_nb_referents_delegues
+                            filiere['nombre_collaborateurs_sensibilises'] = nouveau_nb_collab_sensibilises
+                            filiere['nombre_collaborateurs_total'] = nouveau_nb_collab_total
+                            filiere['niveau_autonomie'] = nouveau_niveau_autonomie
+                            filiere['fopp_count'] = nouveau_fopp_count
+                            filiere['etat_avancement'] = nouvel_etat
+                            filiere['acces']['laposte_gpt'] = nouveau_laposte_gpt
+                            filiere['acces']['copilot_licences'] = nouvelles_licences
+                            filiere['point_attention'] = nouveau_point_attention
+                            filiere['usages_phares'] = nouveaux_usages
+                            filiere['evenements_recents'] = nouveaux_evenements
                             
                             # Sauvegarde
                             save_data(data)
