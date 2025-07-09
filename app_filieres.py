@@ -4,15 +4,28 @@ import os
 from datetime import datetime
 import requests
 
+# Try to import plotting libraries
+try:
+    import plotly.express as px
+    PLOTLY_AVAILABLE = True
+except ImportError:
+    PLOTLY_AVAILABLE = False
+
+try:
+    import matplotlib.pyplot as plt
+    MATPLOTLIB_AVAILABLE = True
+except ImportError:
+    MATPLOTLIB_AVAILABLE = False
+
 # Configuration de la page
 st.set_page_config(
-    page_title="Tableau de bord des filières support - La Poste",
+    page_title="Suivi des Filières Support - La Poste",
     page_icon="📊",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="collapsed"
 )
 
-GIST_ID = "e5f2784739d9e2784a3f067217b25e01"  # Remplace par ton vrai ID de Gist
+GIST_ID = "e5f2784739d9e2784a3f067217b25e01"
 FILENAME = "filieres_data.json"
 GITHUB_TOKEN = st.secrets["GITHUB_PAT"]
 
@@ -48,19 +61,34 @@ def migrate_filiere_fields(filiere):
                     filiere[k][subk] = subv
     return filiere
 
+@st.cache_data(ttl=10)  # Cache for 10 seconds only
 def load_data():
     url = f"https://api.github.com/gists/{GIST_ID}"
+    
+    # Use authentication for higher rate limit
     headers = {"Authorization": f"token {GITHUB_TOKEN}"}
-    r = requests.get(url, headers=headers)
-    r.raise_for_status()
-    files = r.json()["files"]
-    content = files[FILENAME]["content"]
-    data = json.loads(content)
-    # Migration à la volée des filières (comme avant)
-    if 'filieres' in data:
-        for key, filiere in data['filieres'].items():
-            data['filieres'][key] = migrate_filiere_fields(filiere)
-    return data
+    
+    try:
+        r = requests.get(url, headers=headers)
+        r.raise_for_status()
+        files = r.json()["files"]
+        content = files[FILENAME]["content"]
+        data = json.loads(content)
+        # Migration à la volée des filières (comme avant)
+        if 'filieres' in data:
+            for key, filiere in data['filieres'].items():
+                data['filieres'][key] = migrate_filiere_fields(filiere)
+        return data
+    except requests.exceptions.HTTPError as e:
+        st.error(f"Erreur HTTP lors du chargement du Gist: {e}")
+        st.error(f"Status code: {r.status_code}")
+        st.error(f"Response: {r.text}")
+        if r.status_code == 403 and "rate limit" in r.text:
+            st.error("💡 Limite d'API atteinte. L'administrateur doit configurer un token GitHub pour une meilleure performance.")
+        return None
+    except Exception as e:
+        st.error(f"Erreur lors du chargement des données: {str(e)}")
+        return None
 
 def save_data(data):
     url = f"https://api.github.com/gists/{GIST_ID}"
@@ -75,9 +103,12 @@ def save_data(data):
     try:
         r = requests.patch(url, headers=headers, data=json.dumps(payload))
         r.raise_for_status()
-        print("Sauvegarde Gist réussie.")
+        # Clear cache to reload fresh data
+        st.cache_data.clear()
+        return True
     except Exception as e:
-        print(f"Erreur lors de la sauvegarde Gist : {e}")
+        st.error(f"❌ Erreur lors de la sauvegarde: {e}")
+        return False
 
 def display_filiere_card(filiere_key, filiere_data, etats_config):
     """Affiche une carte pour une filière dans un container Streamlit natif"""
@@ -108,24 +139,30 @@ def display_filiere_card(filiere_key, filiere_data, etats_config):
             unsafe_allow_html=True
         )
         
-        # Titre avec icône
-        st.subheader(f"{filiere_data.get('icon', '📁')} {filiere_data.get('nom', 'Filière')}")
+        # Titre avec icône et nombre total de collaborateurs
+        nom_filiere = filiere_data.get('nom', 'Filière')
+        nb_total_collab = filiere_data.get('nombre_collaborateurs_total', 0)
+        st.markdown(f"""
+        <h3>{filiere_data.get('icon', '📁')} {nom_filiere} <span style='font-weight: normal; font-style: italic; font-size: 0.8em;'>({nb_total_collab} collaborateurs)</span></h3>
+        """, unsafe_allow_html=True)
         
-        # Badge d'état coloré
+        # Badge d'état
         st.markdown(
             f"""<div style='display: inline-block; 
             background-color: {couleur_bordure}; 
             color: white; 
-            padding: 8px 16px; 
-            border-radius: 20px; 
+            padding: 6px 12px; 
+            border-radius: 15px; 
             font-weight: bold; 
-            margin: 10px 0;
+            margin: 5px 0;
+            font-size: 0.9em;
             box-shadow: 0 2px 4px rgba(0,0,0,0.2);'>
             🎯 {etat_label}
             </div>""", 
             unsafe_allow_html=True
         )
-        # Niveau d'autonomie en haut, sous le badge d'état
+        
+        # Niveau d'autonomie
         icone_autonomie = {
             "Besoin d'accompagnement faible": "🟢",
             "Besoin d'accompagnement modéré": "🟡",
@@ -135,7 +172,7 @@ def display_filiere_card(filiere_key, filiere_data, etats_config):
         niveau_autonomie = filiere_data.get('niveau_autonomie', 'Non renseigné')
         icone = icone_autonomie.get(niveau_autonomie, "❔")
         st.markdown(
-            f"""<div style='margin: 8px 0 0 0; font-size: 1.2em;'><span>{icone}</span> <span style='font-weight:bold;'>{niveau_autonomie}</span></div>""",
+            f"""<div style='margin: 5px 0 0 0; font-size: 1.0em;'><span>{icone}</span> <span style='font-weight:bold;'>{niveau_autonomie}</span></div>""",
             unsafe_allow_html=True
         )
         
@@ -148,10 +185,11 @@ def display_filiere_card(filiere_key, filiere_data, etats_config):
         with col1:
             st.markdown(
                 f"""<div style='background-color: {couleur_fond}20; 
-                padding: 10px; 
-                border-radius: 5px; 
-                border-left: 3px solid {couleur_bordure};
-                margin-bottom: 10px;'>
+                padding: 6px; 
+                border-radius: 4px; 
+                border-left: 2px solid {couleur_bordure};
+                margin-bottom: 5px;
+                font-size: 0.9em;'>
                 <strong>👤 Référent métier:</strong><br/>
                 {filiere_data.get('referent_metier', 'Non défini')}
                 </div>""", 
@@ -159,55 +197,48 @@ def display_filiere_card(filiere_key, filiere_data, etats_config):
             )
             st.markdown(
                 f"""<div style='background-color: {couleur_fond}20; 
-                padding: 10px; 
-                border-radius: 5px; 
-                border-left: 3px solid {couleur_bordure};
-                margin-bottom: 10px;'>
-                <strong>🧑‍💼 Nombre de référents métier délégués:</strong><br/>
+                padding: 6px; 
+                border-radius: 4px; 
+                border-left: 2px solid {couleur_bordure};
+                margin-bottom: 5px;
+                font-size: 0.9em;'>
+                <strong>🧑‍💼 Référents métier délégués:</strong><br/>
                 {filiere_data.get('nombre_referents_delegues', 0)}
                 </div>""",
                 unsafe_allow_html=True
             )
             st.markdown(
                 f"""<div style='background-color: {couleur_fond}20; 
-                padding: 10px; 
-                border-radius: 5px; 
-                border-left: 3px solid {couleur_bordure};
-                margin-bottom: 10px;'>
-                <strong>🎓 Nombre de collaborateurs sensibilisés à l'IAGen:</strong><br/>
+                padding: 6px; 
+                border-radius: 4px; 
+                border-left: 2px solid {couleur_bordure};
+                margin-bottom: 5px;
+                font-size: 0.9em;'>
+                <strong>🎓 Sensibilisés IAGen:</strong><br/>
                 {filiere_data.get('nombre_collaborateurs_sensibilises', 0)}
-                </div>""",
-                unsafe_allow_html=True
-            )
-            st.markdown(
-                f"""<div style='background-color: {couleur_fond}20; 
-                padding: 10px; 
-                border-radius: 5px; 
-                border-left: 3px solid {couleur_bordure};
-                margin-bottom: 10px;'>
-                <strong>👥 Nombre total de collaborateurs dans la filière:</strong><br/>
-                {filiere_data.get('nombre_collaborateurs_total', 0)}
                 </div>""",
                 unsafe_allow_html=True
             )
         with col2:
             st.markdown(
                 f"""<div style='background-color: {couleur_fond}20; 
-                padding: 10px; 
-                border-radius: 5px; 
-                border-left: 3px solid {couleur_bordure};
-                margin-bottom: 10px;'>
-                <strong>🔑 Accès LaPoste GPT:</strong><br/>
+                padding: 6px; 
+                border-radius: 4px; 
+                border-left: 2px solid {couleur_bordure};
+                margin-bottom: 5px;
+                font-size: 0.9em;'>
+                <strong>🔑 LaPoste GPT:</strong><br/>
                 {filiere_data.get('acces', {}).get('laposte_gpt', 0)}
                 </div>""", 
                 unsafe_allow_html=True
             )
             st.markdown(
                 f"""<div style='background-color: {couleur_fond}20; 
-                padding: 10px; 
-                border-radius: 5px; 
-                border-left: 3px solid {couleur_bordure};
-                margin-bottom: 10px;'>
+                padding: 6px; 
+                border-radius: 4px; 
+                border-left: 2px solid {couleur_bordure};
+                margin-bottom: 5px;
+                font-size: 0.9em;'>
                 <strong>📋 Licences Copilot:</strong><br/>
                 {filiere_data.get('acces', {}).get('copilot_licences', 0)}
                 </div>""", 
@@ -215,43 +246,47 @@ def display_filiere_card(filiere_key, filiere_data, etats_config):
             )
             st.markdown(
                 f"""<div style='background-color: {couleur_fond}20; 
-                padding: 10px; 
-                border-radius: 5px; 
-                border-left: 3px solid {couleur_bordure};
-                margin-bottom: 10px;'>
-                <strong>📄 Nombre de fiches d'opportunité:</strong><br/>
+                padding: 6px; 
+                border-radius: 4px; 
+                border-left: 2px solid {couleur_bordure};
+                margin-bottom: 5px;
+                font-size: 0.9em;'>
+                <strong>📄 Fiches d'opportunité:</strong><br/>
                 {filiere_data.get('fopp_count', 0)}
                 </div>""",
                 unsafe_allow_html=True
             )
         
-        # Point d'attention avec style coloré
+        # Point d'attention
         point_attention = filiere_data.get('point_attention', '')
         if point_attention and point_attention != 'Aucun point d\'attention spécifique':
             st.markdown("---")
             st.markdown(
                 f"""<div style='background-color: #fff3cd; 
-                border-left: 4px solid #ffc107; 
-                padding: 15px; 
-                border-radius: 5px;
-                margin: 10px 0;'>
+                border-left: 3px solid #ffc107; 
+                padding: 8px; 
+                border-radius: 4px;
+                margin: 5px 0;
+                font-size: 0.9em;'>
                 <strong>⚠️ Point d'attention:</strong><br/>
                 {point_attention}
                 </div>""", 
                 unsafe_allow_html=True
             )
         
-        # Usage(s) phare(s)
+        # Usages phares
         usages = filiere_data.get('usages_phares', [])
         if usages:
-            st.markdown("---")
-            st.markdown("**🌟 Usage(s) phare(s):**")
+            if not (point_attention and point_attention != 'Aucun point d\'attention spécifique'):
+                st.markdown("---")
+            st.markdown("<strong style='font-size: 0.9em;'>🌟 Usage(s) phare(s):</strong>", unsafe_allow_html=True)
             for usage in usages:
                 st.markdown(
                     f"""<div style='background-color: {couleur_fond}10; 
-                    padding: 5px 10px; 
-                    border-radius: 5px; 
-                    margin: 5px 0;'>
+                    padding: 4px 8px; 
+                    border-radius: 4px; 
+                    margin: 3px 0;
+                    font-size: 0.85em;'>
                     • {usage}
                     </div>""", 
                     unsafe_allow_html=True
@@ -320,7 +355,7 @@ def main():
     etats_config = data.get('etats_avancement', {})
     
     # Titre principal
-    st.title("📊 Tableau de bord des filières support - La Poste")
+    st.title("📊 Suivi des Filières Support - La Poste")
     st.markdown("### Expérimentations sur les outils IA Génératifs")
     
     # Sidebar pour les filtres
@@ -407,6 +442,204 @@ def main():
         
         filieres_filtrees[key] = filiere
     
+    # Pie charts pour les accès aux outils
+    st.markdown("### 📊 Répartition des accès aux outils")
+    
+    # Préparation des données pour les pie charts
+    laposte_gpt_data = {}
+    copilot_data = {}
+    
+    for key, filiere in filieres_filtrees.items():
+        nom_filiere = filiere.get('nom', 'Filière inconnue')
+        laposte_gpt_count = filiere.get('acces', {}).get('laposte_gpt', 0)
+        copilot_count = filiere.get('acces', {}).get('copilot_licences', 0)
+        
+        if laposte_gpt_count > 0:
+            laposte_gpt_data[nom_filiere] = laposte_gpt_count
+        if copilot_count > 0:
+            copilot_data[nom_filiere] = copilot_count
+    
+    # Palette de couleurs cohérente avec l'application - Version pastel (30% plus claire)
+    def make_pastel(hex_color, lightness_factor=0.3):
+        """Convertit une couleur hex en version pastel"""
+        # Supprimer le # si présent
+        hex_color = hex_color.lstrip('#')
+        
+        # Convertir en RGB
+        r = int(hex_color[0:2], 16)
+        g = int(hex_color[2:4], 16)
+        b = int(hex_color[4:6], 16)
+        
+        # Éclaircir en mélangeant avec du blanc
+        r = int(r + (255 - r) * lightness_factor)
+        g = int(g + (255 - g) * lightness_factor)
+        b = int(b + (255 - b) * lightness_factor)
+        
+        # Reconvertir en hex
+        return f"#{r:02x}{g:02x}{b:02x}"
+    
+    # Palette harmonieuse basée sur les couleurs demandées
+    app_colors = [
+        '#A5D6A7',  # Vert pastel
+        '#87CEEB',  # Bleu ciel
+        '#FFCC80',  # Orange pastel
+        '#F8BBD9',  # Rose pastel (couleur harmonieuse)
+        '#D1C4E9',  # Violet pastel (couleur harmonieuse)
+        '#FFAB91',  # Saumon pastel (couleur harmonieuse)
+        '#80CBC4',  # Turquoise pastel (couleur harmonieuse)
+        '#FFF176',  # Jaune pastel (couleur harmonieuse)
+        '#C8E6C9',  # Vert très clair (variation)
+        '#B3E5FC',  # Bleu très clair (variation)
+        '#FFE0B2',  # Orange très clair (variation)
+        '#E1BEE7',  # Violet très clair (variation)
+        '#FFCDD2',  # Rose très clair (variation)
+        '#B2DFDB',  # Turquoise très clair (variation)
+        '#F0F4C3',  # Jaune très clair (variation)
+        '#DCEDC8',  # Vert lime clair (variation)
+        '#BBDEFB',  # Bleu clair (variation)
+        '#FFECB3',  # Ambre clair (variation)
+        '#F3E5F5',  # Violet très pâle (variation)
+        '#FCE4EC',  # Rose très pâle (variation)
+        '#E0F2F1',  # Turquoise très pâle (variation)
+        '#FFFDE7',  # Jaune très pâle (variation)
+        '#E8F5E8',  # Vert très pâle (variation)
+        '#E3F2FD',  # Bleu très pâle (variation)
+        '#FFF8E1',  # Orange très pâle (variation)
+        '#F9FBE7',  # Lime très pâle (variation)
+        '#FFF3E0',  # Orange doux (variation)
+        '#E8EAF6',  # Indigo pâle (variation)
+        '#FFEBEE',  # Rouge pâle (variation)
+        '#E0F7FA',  # Cyan pâle (variation)
+        '#F1F8E9',  # Vert doux (variation)
+        '#E1F5FE',  # Bleu doux (variation)
+        '#FFF9C4',  # Jaune doux (variation)
+        '#E4C441',  # Doré doux (variation)
+        '#AED581',  # Vert lime doux (variation)
+        '#4FC3F7',  # Bleu vif doux (variation)
+        '#FFB74D',  # Orange vif doux (variation)
+        '#BA68C8',  # Violet vif doux (variation)
+        '#F06292',  # Rose vif doux (variation)
+        '#4DB6AC'   # Turquoise vif doux (variation)
+    ]
+    
+    # Créer un mapping couleur fixe par département pour TOUS les départements
+    tous_departements = set()
+    for key, filiere in filieres_filtrees.items():
+        nom_filiere = filiere.get('nom', 'Filière inconnue')
+        tous_departements.add(nom_filiere)  # Tous les départements, pas seulement ceux avec accès
+    
+    # Trier les départements pour un ordre cohérent
+    departements_ordonnes = sorted(tous_departements)
+    
+    # Vérifier qu'il y a assez de couleurs
+    if len(departements_ordonnes) > len(app_colors):
+        st.warning(f"⚠️ Il y a {len(departements_ordonnes)} filières mais seulement {len(app_colors)} couleurs disponibles. Certaines couleurs seront répétées.")
+    
+    # Créer un mapping département -> couleur FIXE pour tous les départements
+    couleur_par_departement = {}
+    for i, dept in enumerate(departements_ordonnes):
+        couleur_par_departement[dept] = app_colors[i % len(app_colors)]
+    
+    # Debug : afficher le mapping (à supprimer après test)
+    # st.write("DEBUG - Mapping couleurs:", couleur_par_departement)
+    
+    # Affichage des pie charts
+    col1, col_divider, col2 = st.columns([5, 1, 5])
+    
+    with col1:
+        if laposte_gpt_data:
+            if PLOTLY_AVAILABLE:
+                # Créer un mapping couleur direct pour Plotly
+                couleurs_laposte = [couleur_par_departement[dept] for dept in laposte_gpt_data.keys()]
+                
+                fig1 = px.pie(
+                    values=list(laposte_gpt_data.values()),
+                    names=list(laposte_gpt_data.keys()),
+                    title="🔑 Accès LaPoste GPT"
+                )
+                
+                # Assigner les couleurs manuellement pour chaque segment
+                fig1.update_traces(
+                    marker=dict(colors=couleurs_laposte)
+                )
+                fig1.update_layout(
+                    height=300,
+                    margin=dict(t=50, b=20, l=20, r=20),
+                    font=dict(size=10),
+                    showlegend=True,
+                    legend=dict(orientation="v", yanchor="middle", y=0.5, xanchor="left", x=1.02)
+                )
+                fig1.update_traces(textposition='inside', textinfo='percent+label')
+                st.plotly_chart(fig1, use_container_width=True)
+            elif MATPLOTLIB_AVAILABLE:
+                # Créer la séquence de couleurs pour matplotlib
+                couleurs_laposte = [couleur_par_departement[dept] for dept in laposte_gpt_data.keys()]
+                
+                fig, ax = plt.subplots(figsize=(6, 4))
+                ax.pie(list(laposte_gpt_data.values()), labels=list(laposte_gpt_data.keys()), 
+                       autopct='%1.1f%%', colors=couleurs_laposte)
+                ax.set_title("🔑 Accès LaPoste GPT")
+                st.pyplot(fig)
+                plt.close(fig)
+            else:
+                # Fallback: simple text display
+                total = sum(laposte_gpt_data.values())
+                for filiere, count in laposte_gpt_data.items():
+                    percentage = (count / total) * 100
+                    st.write(f"• {filiere}: {count} accès ({percentage:.1f}%)")
+        else:
+            st.info("Aucun accès LaPoste GPT configuré")
+    
+    with col_divider:
+        # Divider vertical léger
+        st.markdown("""
+        <div style='height: 300px; width: 1px; background-color: #dee2e6; margin: 0 auto;'></div>
+        """, unsafe_allow_html=True)
+    
+    with col2:
+        if copilot_data:
+            if PLOTLY_AVAILABLE:
+                # Créer un mapping couleur direct pour Plotly
+                couleurs_copilot = [couleur_par_departement[dept] for dept in copilot_data.keys()]
+                
+                fig2 = px.pie(
+                    values=list(copilot_data.values()),
+                    names=list(copilot_data.keys()),
+                    title="📋 Licences Copilot"
+                )
+                
+                # Assigner les couleurs manuellement pour chaque segment
+                fig2.update_traces(
+                    marker=dict(colors=couleurs_copilot)
+                )
+                fig2.update_layout(
+                    height=300,
+                    margin=dict(t=50, b=20, l=20, r=20),
+                    font=dict(size=10),
+                    showlegend=True,
+                    legend=dict(orientation="v", yanchor="middle", y=0.5, xanchor="left", x=1.02)
+                )
+                fig2.update_traces(textposition='inside', textinfo='percent+label')
+                st.plotly_chart(fig2, use_container_width=True)
+            elif MATPLOTLIB_AVAILABLE:
+                # Créer la séquence de couleurs pour matplotlib
+                couleurs_copilot = [couleur_par_departement[dept] for dept in copilot_data.keys()]
+                
+                fig, ax = plt.subplots(figsize=(6, 4))
+                ax.pie(list(copilot_data.values()), labels=list(copilot_data.keys()), 
+                       autopct='%1.1f%%', colors=couleurs_copilot)
+                ax.set_title("📋 Licences Copilot")
+                st.pyplot(fig)
+                plt.close(fig)
+            else:
+                # Fallback: simple text display
+                total = sum(copilot_data.values())
+                for filiere, count in copilot_data.items():
+                    percentage = (count / total) * 100
+                    st.write(f"• {filiere}: {count} licences ({percentage:.1f}%)")
+        else:
+            st.info("Aucune licence Copilot configurée")
+    
     # Affichage des fiches
     st.header("🗂️ Fiches d'avancement des filières")
     st.write(f"*{len(filieres_filtrees)} filière(s) affichée(s)*")
@@ -417,6 +650,18 @@ def main():
         ["Cartes", "Tableau", "Édition"],
         horizontal=True
     )
+    
+    if mode_affichage == "Édition":
+        st.info("📝 Mode édition activé - Vos modifications seront sauvegardées automatiquement")
+    
+    # Auto-refresh invisible - actualise automatiquement toutes les 15 secondes
+    st.markdown("""
+    <script>
+    setTimeout(function(){
+        window.location.reload();
+    }, 15000);
+    </script>
+    """, unsafe_allow_html=True)
     
     if mode_affichage == "Cartes":
         # Recharge les données pour garantir la fraîcheur
@@ -486,6 +731,10 @@ def main():
             'en_emergence': '🟡 EN ÉMERGENCE',
             'a_initier': '🔴 À INITIER'
         }
+        
+        # Ordre de tri des états (du plus avancé au moins avancé)
+        ordre_etats = ['prompts_deployes', 'tests_realises', 'en_emergence', 'a_initier']
+        
         table_data = []
         for key, filiere in filieres_filtrees.items():
             etat = filiere.get('etat_avancement', 'initialisation')
@@ -499,22 +748,116 @@ def main():
                 'Niveau autonomie': filiere.get('niveau_autonomie', ''),
                 'Fiches opportunité': filiere.get('fopp_count', 0),
                 'LaPoste GPT': filiere.get('acces', {}).get('laposte_gpt', 0),
-                'Copilot': filiere.get('acces', {}).get('copilot_licences', 0)
+                'Copilot': filiere.get('acces', {}).get('copilot_licences', 0),
+                'ordre_tri': ordre_etats.index(etat) if etat in ordre_etats else 999
             })
         if table_data:
             df = pd.DataFrame(table_data)
-            df_sorted = df.sort_values(by=['État'])
+            # Trier par ordre d'avancement (avancé en haut)
+            df_sorted = df.sort_values(by=['ordre_tri', 'Filière']).drop('ordre_tri', axis=1)
             st.dataframe(
                 df_sorted,
                 use_container_width=True,
                 hide_index=True
             )
-            # Export CSV
-            csv = df_sorted.to_csv(index=False).encode('utf-8')
+            # Export CSV avec nettoyage des émojis et normalisation des accents
+            def clean_text_for_csv(text):
+                """Nettoie le texte en supprimant les émojis et normalisant les accents pour l'export CSV"""
+                if not isinstance(text, str):
+                    return str(text)
+                
+                # Mapping des émojis vers du texte
+                emoji_mapping = {
+                    '🟢': 'AVANCE',
+                    '🔵': 'INTERMEDIAIRE', 
+                    '🟡': 'EN_EMERGENCE',
+                    '🔴': 'A_INITIER',
+                    '📁': '',
+                    '📊': '',
+                    '📢': '',
+                    '💰': '',
+                    '⚖️': '',
+                    '🏛️': '',
+                    '🔧': '',
+                    '🏢': '',
+                    '📋': '',
+                    '🎯': '',
+                    '🛡️': '',
+                    '🚀': '',
+                    '🌐': '',
+                    '📱': '',
+                    '🔒': '',
+                    '👥': '',
+                    '🎨': '',
+                    '📈': '',
+                    '🔍': '',
+                    '💡': '',
+                    '🏆': '',
+                    '⚡': '',
+                    '📝': '',
+                    '⚠️': 'ATTENTION',
+                    '❌': 'NON',
+                    '✅': 'OUI',
+                    '❓': 'QUESTION',
+                    '❗': 'IMPORTANT'
+                }
+                
+                # Remplacer les émojis
+                cleaned = text
+                for emoji, replacement in emoji_mapping.items():
+                    cleaned = cleaned.replace(emoji, replacement)
+                
+                # Normaliser les accents pour éviter les problèmes d'encodage
+                import unicodedata
+                # Décomposer les caractères Unicode puis les recomposer
+                cleaned = unicodedata.normalize('NFD', cleaned)
+                cleaned = unicodedata.normalize('NFC', cleaned)
+                
+                # Mapping manuel des caractères problématiques pour CSV
+                accent_mapping = {
+                    'à': 'a', 'á': 'a', 'â': 'a', 'ã': 'a', 'ä': 'a', 'å': 'a',
+                    'è': 'e', 'é': 'e', 'ê': 'e', 'ë': 'e',
+                    'ì': 'i', 'í': 'i', 'î': 'i', 'ï': 'i',
+                    'ò': 'o', 'ó': 'o', 'ô': 'o', 'õ': 'o', 'ö': 'o',
+                    'ù': 'u', 'ú': 'u', 'û': 'u', 'ü': 'u',
+                    'ý': 'y', 'ÿ': 'y',
+                    'ç': 'c', 'ñ': 'n',
+                    'À': 'A', 'Á': 'A', 'Â': 'A', 'Ã': 'A', 'Ä': 'A', 'Å': 'A',
+                    'È': 'E', 'É': 'E', 'Ê': 'E', 'Ë': 'E',
+                    'Ì': 'I', 'Í': 'I', 'Î': 'I', 'Ï': 'I',
+                    'Ò': 'O', 'Ó': 'O', 'Ô': 'O', 'Õ': 'O', 'Ö': 'O',
+                    'Ù': 'U', 'Ú': 'U', 'Û': 'U', 'Ü': 'U',
+                    'Ý': 'Y', 'Ÿ': 'Y',
+                    'Ç': 'C', 'Ñ': 'N'
+                }
+                
+                # Remplacer les caractères accentués
+                for accented, plain in accent_mapping.items():
+                    cleaned = cleaned.replace(accented, plain)
+                
+                # Supprimer les caractères spéciaux restants
+                import re
+                cleaned = re.sub(r'[^\w\s\-.,;:()]', '', cleaned)
+                
+                # Nettoyer les espaces multiples
+                cleaned = re.sub(r'\s+', ' ', cleaned).strip()
+                
+                return cleaned
+            
+            # Créer une copie du DataFrame pour l'export
+            df_export = df_sorted.copy()
+            
+            # Nettoyer toutes les colonnes de type string
+            for col in df_export.columns:
+                if df_export[col].dtype == 'object':
+                    df_export[col] = df_export[col].astype(str).apply(clean_text_for_csv)
+            
+            # Utiliser l'encodage latin-1 pour éviter les problèmes d'accents
+            csv = df_export.to_csv(index=False, sep=';', encoding='latin-1', errors='replace')
             st.download_button(
                 label="📥 Exporter en CSV",
-                data=csv,
-                file_name='filiere_tableau.csv',
+                data=csv.encode('latin-1'),
+                file_name='filieres_tableau.csv',
                 mime='text/csv'
             )
     
@@ -522,13 +865,105 @@ def main():
         # Mode édition
         st.subheader("✏️ Édition des données")
         
-        # Sélection de la filière à éditer
+        # Sélection de la filière à éditer avec navigation
         if filieres_filtrees:
-            filiere_a_editer = st.selectbox(
-                "Sélectionnez une filière à éditer",
-                list(filieres_filtrees.keys()),
-                format_func=lambda x: f"{filieres[x].get('icon', '📁')} {filieres[x].get('nom', 'Filière')}"
-            )
+            filieres_keys = list(filieres_filtrees.keys())
+            
+            # Initialiser la filière sélectionnée
+            if "filiere_editee_index" not in st.session_state:
+                st.session_state.filiere_editee_index = 0
+            
+            # S'assurer que l'index est dans les limites
+            if st.session_state.filiere_editee_index >= len(filieres_keys):
+                st.session_state.filiere_editee_index = 0
+            
+            # Fonction pour détecter les changements
+            def detecter_changements(filiere_key, filiere_data):
+                """Détecte si des changements ont été faits dans les champs"""
+                if f"ref_{filiere_key}" in st.session_state:
+                    return (
+                        st.session_state.get(f"ref_{filiere_key}", "") != filiere_data.get('referent_metier', '') or
+                        st.session_state.get(f"refdelegues_{filiere_key}", 0) != filiere_data.get('nombre_referents_delegues', 0) or
+                        st.session_state.get(f"collabIAGen_{filiere_key}", 0) != filiere_data.get('nombre_collaborateurs_sensibilises', 0) or
+                        st.session_state.get(f"collabTotal_{filiere_key}", 0) != filiere_data.get('nombre_collaborateurs_total', 0) or
+                        st.session_state.get(f"autonomie_{filiere_key}", "") != filiere_data.get('niveau_autonomie', '') or
+                        st.session_state.get(f"fopp_{filiere_key}", 0) != filiere_data.get('fopp_count', 0) or
+                        st.session_state.get(f"etat_{filiere_key}", "") != filiere_data.get('etat_avancement', '') or
+                        st.session_state.get(f"gpt_{filiere_key}", 0) != filiere_data.get('acces', {}).get('laposte_gpt', 0) or
+                        st.session_state.get(f"copilot_{filiere_key}", 0) != filiere_data.get('acces', {}).get('copilot_licences', 0) or
+                        st.session_state.get(f"attention_{filiere_key}", "") != filiere_data.get('point_attention', '')
+                    )
+                return False
+            
+            # Interface de navigation
+            col1, col2, col3 = st.columns([1, 6, 1])
+            
+            with col1:
+                if st.button("◀", key="nav_prev", help="Filière précédente"):
+                    current_filiere = filieres_keys[st.session_state.filiere_editee_index]
+                    if detecter_changements(current_filiere, filieres[current_filiere]):
+                        st.session_state.navigation_pending = "prev"
+                        st.session_state.show_save_dialog = True
+                        st.session_state.filiere_nom_dialog = filieres[current_filiere].get('nom', 'Filière')
+                    else:
+                        st.session_state.filiere_editee_index = (st.session_state.filiere_editee_index - 1) % len(filieres_keys)
+                        st.rerun()
+            
+            with col2:
+                filiere_a_editer = st.selectbox(
+                    "Sélectionnez une filière à éditer",
+                    filieres_keys,
+                    index=st.session_state.filiere_editee_index,
+                    format_func=lambda x: f"{filieres[x].get('icon', '📁')} {filieres[x].get('nom', 'Filière')}",
+                    key="filiere_selectbox"
+                )
+                
+                # Mettre à jour l'index si changé via le selectbox
+                if filiere_a_editer != filieres_keys[st.session_state.filiere_editee_index]:
+                    st.session_state.filiere_editee_index = filieres_keys.index(filiere_a_editer)
+            
+            with col3:
+                if st.button("▶", key="nav_next", help="Filière suivante"):
+                    current_filiere = filieres_keys[st.session_state.filiere_editee_index]
+                    if detecter_changements(current_filiere, filieres[current_filiere]):
+                        st.session_state.navigation_pending = "next"
+                        st.session_state.show_save_dialog = True
+                        st.session_state.filiere_nom_dialog = filieres[current_filiere].get('nom', 'Filière')
+                    else:
+                        st.session_state.filiere_editee_index = (st.session_state.filiere_editee_index + 1) % len(filieres_keys)
+                        st.rerun()
+            
+            # Dialog de confirmation pour sauvegarder
+            if st.session_state.get("show_save_dialog", False):
+                st.warning(f"⚠️ Vous avez des modifications non sauvegardées sur la filière '{st.session_state.filiere_nom_dialog}'")
+                
+                col1, col2, col3 = st.columns([1, 1, 1])
+                with col1:
+                    if st.button("💾 Sauvegarder", key="save_and_nav"):
+                        # Sauvegarder les modifications actuelles
+                        current_filiere = filieres_keys[st.session_state.filiere_editee_index]
+                        # Déclencher la sauvegarde (logique à ajouter)
+                        st.session_state.force_save = True
+                        st.session_state.show_save_dialog = False
+                        st.rerun()
+                
+                with col2:
+                    if st.button("🗑️ Ignorer", key="ignore_and_nav"):
+                        # Ignorer les modifications et naviguer
+                        if st.session_state.navigation_pending == "prev":
+                            st.session_state.filiere_editee_index = (st.session_state.filiere_editee_index - 1) % len(filieres_keys)
+                        elif st.session_state.navigation_pending == "next":
+                            st.session_state.filiere_editee_index = (st.session_state.filiere_editee_index + 1) % len(filieres_keys)
+                        
+                        st.session_state.show_save_dialog = False
+                        st.session_state.navigation_pending = None
+                        st.rerun()
+                
+                with col3:
+                    if st.button("❌ Annuler", key="cancel_nav"):
+                        st.session_state.show_save_dialog = False
+                        st.session_state.navigation_pending = None
+                        st.rerun()
             
             if filiere_a_editer:
                 filiere_data = filieres[filiere_a_editer]
@@ -674,7 +1109,7 @@ def main():
                     # Bouton de sauvegarde
                     col1, col2, col3 = st.columns([1, 1, 1])
                     with col2:
-                        if st.button("💾 Sauvegarder les modifications", type="primary", use_container_width=True):
+                        if st.button("💾 Sauvegarder les modifications", type="primary", use_container_width=True) or st.session_state.get("force_save", False):
                             # Convertir les données
                             nouveaux_usages = [usage.strip() for usage in nouveaux_usages_text.split('\n') if usage.strip()]
                             
@@ -705,10 +1140,29 @@ def main():
                             filiere['evenements_recents'] = nouveaux_evenements
                             
                             # Sauvegarde
-                            save_data(data)
-                            
-                            st.session_state["edition_success"] = True
-                            st.rerun()
+                            if save_data(data):
+                                # Message de succès temporaire avec timestamp
+                                st.session_state["success_message"] = True
+                                st.session_state["success_timestamp"] = datetime.now().timestamp()
+                                
+                                # Si c'était une sauvegarde forcée, naviguer après
+                                if st.session_state.get("force_save", False):
+                                    st.session_state.force_save = False
+                                    if st.session_state.get("navigation_pending") == "prev":
+                                        st.session_state.filiere_editee_index = (st.session_state.filiere_editee_index - 1) % len(filieres_keys)
+                                    elif st.session_state.get("navigation_pending") == "next":
+                                        st.session_state.filiere_editee_index = (st.session_state.filiere_editee_index + 1) % len(filieres_keys)
+                                    st.session_state.navigation_pending = None
+                                
+                                st.rerun()
+                    
+                    # Affichage du message de succès temporaire
+                    if st.session_state.get("success_message", False):
+                        current_time = datetime.now().timestamp()
+                        if current_time - st.session_state.get("success_timestamp", 0) < 6:
+                            st.success("✅ Modifications sauvegardées avec succès!")
+                        else:
+                            st.session_state["success_message"] = False
         else:
             st.info("Aucune filière ne correspond aux filtres sélectionnés.")
     
@@ -716,17 +1170,6 @@ def main():
     st.markdown("---")
     st.markdown(f"*Dernière mise à jour: {datetime.now().strftime('%d/%m/%Y %H:%M')}*")
 
-    # Affichage du toast de succès si paramètre dans l'URL
-    query_params = st.query_params
-    if query_params.get("success") == ["1"]:
-        st.success("✅ Modifications sauvegardées avec succès!", icon="✅")
-        del st.query_params["success"]
-
-    # --- Correction message succès édition ---
-    # Dans le mode édition, remplacer l'utilisation des query params par un st.session_state pour afficher le message de succès
-    if st.session_state.get("edition_success"):
-        st.success("Modifications sauvegardées avec succès!", icon="✅")
-        st.session_state["edition_success"] = False
 
 if __name__ == "__main__":
     main()
