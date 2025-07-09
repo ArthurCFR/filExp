@@ -139,8 +139,12 @@ def display_filiere_card(filiere_key, filiere_data, etats_config):
             unsafe_allow_html=True
         )
         
-        # Titre avec icône
-        st.subheader(f"{filiere_data.get('icon', '📁')} {filiere_data.get('nom', 'Filière')}")
+        # Titre avec icône et nombre total de collaborateurs
+        nom_filiere = filiere_data.get('nom', 'Filière')
+        nb_total_collab = filiere_data.get('nombre_collaborateurs_total', 0)
+        st.markdown(f"""
+        <h3>{filiere_data.get('icon', '📁')} {nom_filiere} <span style='font-weight: normal; font-style: italic; font-size: 0.8em;'>({nb_total_collab} collaborateurs)</span></h3>
+        """, unsafe_allow_html=True)
         
         # Badge d'état coloré
         st.markdown(
@@ -207,17 +211,6 @@ def display_filiere_card(filiere_key, filiere_data, etats_config):
                 margin-bottom: 10px;'>
                 <strong>🎓 Nombre de collaborateurs sensibilisés à l'IAGen:</strong><br/>
                 {filiere_data.get('nombre_collaborateurs_sensibilises', 0)}
-                </div>""",
-                unsafe_allow_html=True
-            )
-            st.markdown(
-                f"""<div style='background-color: {couleur_fond}20; 
-                padding: 10px; 
-                border-radius: 5px; 
-                border-left: 3px solid {couleur_bordure};
-                margin-bottom: 10px;'>
-                <strong>👥 Nombre total de collaborateurs dans la filière:</strong><br/>
-                {filiere_data.get('nombre_collaborateurs_total', 0)}
                 </div>""",
                 unsafe_allow_html=True
             )
