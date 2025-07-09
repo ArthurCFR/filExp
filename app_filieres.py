@@ -162,14 +162,19 @@ def display_filiere_card(filiere_key, filiere_data, etats_config):
         # Événements récents dans un expander
         st.markdown("---")
         with st.expander("📅 Événements récents", expanded=False):
+            # Gestion ouverture/fermeture du formulaire via session_state
+            form_key = f"show_event_form_{filiere_key}"
+            if form_key not in st.session_state:
+                st.session_state[form_key] = False
             if st.button("➕ Ajouter un événement", key=f"add_event_{filiere_key}", help="Ajouter un événement récent"):
+                st.session_state[form_key] = True
+            if st.session_state[form_key]:
                 with st.form(key=f"form_add_event_{filiere_key}", clear_on_submit=True):
-                    new_date = st.date_input("Date", value=datetime.now())
-                    new_title = st.text_input("Titre")
-                    new_desc = st.text_area("Description")
+                    new_date = st.date_input("Date", value=datetime.now(), key=f"date_{filiere_key}")
+                    new_title = st.text_input("Titre", key=f"title_{filiere_key}")
+                    new_desc = st.text_area("Description", key=f"desc_{filiere_key}")
                     submitted = st.form_submit_button("Enregistrer")
                     if submitted and new_title and new_desc:
-                        # Charger les données
                         data = load_data()
                         filieres = data.get('filieres', {})
                         evenements = filieres.get(filiere_key, {}).get('evenements_recents', [])
@@ -180,8 +185,13 @@ def display_filiere_card(filiere_key, filiere_data, etats_config):
                         })
                         filieres[filiere_key]['evenements_recents'] = evenements
                         save_data(data)
-                        st.success("Événement ajouté avec succès !")
+                        st.session_state[form_key] = False
+                        st.session_state[f"event_success_{filiere_key}"] = True
                         st.rerun()
+            # Message de succès après ajout
+            if st.session_state.get(f"event_success_{filiere_key}"):
+                st.success("Événement ajouté avec succès !")
+                st.session_state[f"event_success_{filiere_key}"] = False
             # Toujours récupérer la liste à jour depuis filiere_data
             evenements = filiere_data.get('evenements_recents', [])
             if evenements:
@@ -548,8 +558,7 @@ def main():
                             # Sauvegarde
                             save_data(data)
                             
-                            st.success("✅ Modifications sauvegardées avec succès!", icon="✅")
-                            st.query_params["success"] = "1"
+                            st.session_state["edition_success"] = True
                             st.rerun()
         else:
             st.info("Aucune filière ne correspond aux filtres sélectionnés.")
@@ -563,6 +572,12 @@ def main():
     if query_params.get("success") == ["1"]:
         st.success("✅ Modifications sauvegardées avec succès!", icon="✅")
         del st.query_params["success"]
+
+    # --- Correction message succès édition ---
+    # Dans le mode édition, remplacer l'utilisation des query params par un st.session_state pour afficher le message de succès
+    if st.session_state.get("edition_success"):
+        st.success("✅ Modifications sauvegardées avec succès!", icon="✅")
+        st.session_state["edition_success"] = False
 
 if __name__ == "__main__":
     main()
