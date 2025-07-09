@@ -732,8 +732,6 @@ def main():
     # Mettre à jour le mode précédent
     st.session_state.mode_precedent = mode_affichage
     
-    if mode_affichage == "Édition":
-        st.info("📝 Mode édition activé - Vos modifications seront sauvegardées automatiquement")
     
     # Auto-refresh invisible - actualise automatiquement toutes les 15 secondes
     st.markdown("""
@@ -1278,10 +1276,22 @@ def main():
                                 
                                 # Nettoyer les flags de sauvegarde
                                 st.session_state["floating_save_clicked"] = False
+                                
+                                # Nettoyer les variables de modification pour éviter la détection continue
+                                keys_to_clean = []
+                                for key in st.session_state.keys():
+                                    if isinstance(key, str) and any(key.startswith(prefix) for prefix in ["etat_", "ref_", "attention_", "refdelegues_", "collabIAGen_", "collabTotal_", "autonomie_", "fopp_", "gpt_", "copilot_"]):
+                                        if key.endswith(filiere_a_editer):
+                                            keys_to_clean.append(key)
+                                for key in keys_to_clean:
+                                    del st.session_state[key]
+                                
                                 if st.session_state.get("force_save_global", False):
                                     st.session_state.force_save_global = False
                                     # Changer de mode après sauvegarde globale
-                                    st.session_state.mode_precedent = st.session_state.get("mode_target", "Cartes")
+                                    mode_cible = st.session_state.get("mode_target", "Cartes")
+                                    st.session_state.mode_precedent = mode_cible
+                                    st.session_state["mode_affichage_radio"] = mode_cible
                                 
                                 # Si c'était une sauvegarde forcée, naviguer après
                                 if st.session_state.get("force_save", False):
