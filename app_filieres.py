@@ -888,7 +888,7 @@ def main():
                 st.session_state.filiere_editee_index = 0
             
             # Interface de navigation
-            col1, col2, col3 = st.columns([0.5, 2, 2])
+            col1, col2, col3, col4 = st.columns([0.5, 2.5, 4, 0.5])
             
             with col1:
                 if st.button("◀", key="nav_prev", help="Filière précédente"):
@@ -909,6 +909,10 @@ def main():
                     st.session_state.filiere_editee_index = filieres_keys.index(filiere_a_editer)
             
             with col3:
+                # Empty space
+                pass
+            
+            with col4:
                 if st.button("▶", key="nav_next", help="Filière suivante"):
                     st.session_state.filiere_editee_index = (st.session_state.filiere_editee_index + 1) % len(filieres_keys)
                     st.rerun()
