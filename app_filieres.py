@@ -48,15 +48,16 @@ def display_filiere_card(filiere_key, filiere_data, etats_config):
         etat_label = etats_config.get(etat, {}).get('label', 'État inconnu')
         st.markdown(f"**État:** :blue[{etat_label}]")
         
-        # Informations principales
-        st.markdown(f"**👤 Référent métier:** {filiere_data.get('referent_metier', 'Non défini')}")
-        st.markdown(f"**🧪 Nombre de testeurs:** {filiere_data.get('nombre_testeurs', 0)}")
-        st.markdown(f"**🔑 Accès LaPoste GPT:** {filiere_data.get('acces', {}).get('laposte_gpt', 0)}")
-        st.markdown(f"**📋 Licences Copilot:** {filiere_data.get('acces', {}).get('copilot_licences', 0)}")
+        # Informations principales en deux colonnes
+        col_info1, col_info2 = st.columns(2)
         
-        # Description
-        st.markdown("**Description:**")
-        st.write(filiere_data.get('description', 'Aucune description disponible'))
+        with col_info1:
+            st.markdown(f"**👤 Référent métier:** {filiere_data.get('referent_metier', 'Non défini')}")
+            st.markdown(f"**🧪 Nombre de testeurs:** {filiere_data.get('nombre_testeurs', 0)}")
+        
+        with col_info2:
+            st.markdown(f"**🔑 Accès LaPoste GPT:** {filiere_data.get('acces', {}).get('laposte_gpt', 0)}")
+            st.markdown(f"**📋 Licences Copilot:** {filiere_data.get('acces', {}).get('copilot_licences', 0)}")
         
         # Point d'attention
         st.markdown("**⚠️ Point d'attention:**")
@@ -274,10 +275,38 @@ def main():
                 help="Entrez un usage phare par ligne"
             )
             
+            # Section Événements récents (éditable)
+            st.write("**📅 Événements récents**")
+            evenements_actuels = filiere_data.get('evenements_recents', [])
+            
+            # Convertir les événements en texte pour édition
+            evenements_text = ""
+            for event in evenements_actuels:
+                evenements_text += f"{event.get('date', '')};{event.get('titre', '')};{event.get('description', '')}\n"
+            
+            nouveaux_evenements_text = st.text_area(
+                "Événements récents (format: date;titre;description, un par ligne)",
+                value=evenements_text,
+                height=120,
+                help="Format: YYYY-MM-DD;Titre de l'événement;Description détaillée"
+            )
+            
             # Bouton de sauvegarde
             if st.button("💾 Sauvegarder les modifications", type="primary"):
                 # Convertir le texte des usages en liste
                 nouveaux_usages = [usage.strip() for usage in nouveaux_usages_text.split('\n') if usage.strip()]
+                
+                # Convertir le texte des événements en liste de dictionnaires
+                nouveaux_evenements = []
+                for ligne in nouveaux_evenements_text.split('\n'):
+                    if ligne.strip():
+                        parties = ligne.split(';')
+                        if len(parties) >= 3:
+                            nouveaux_evenements.append({
+                                'date': parties[0].strip(),
+                                'titre': parties[1].strip(),
+                                'description': parties[2].strip()
+                            })
                 
                 # Mise à jour des données
                 filieres[filiere_a_editer]['referent_metier'] = nouveau_referent
@@ -286,6 +315,7 @@ def main():
                 filieres[filiere_a_editer]['acces']['laposte_gpt'] = nouveau_laposte_gpt
                 filieres[filiere_a_editer]['acces']['copilot_licences'] = nouvelles_licences
                 filieres[filiere_a_editer]['usages_phares'] = nouveaux_usages
+                filieres[filiere_a_editer]['evenements_recents'] = nouveaux_evenements
                 
                 # Sauvegarde dans le fichier JSON
                 save_data(data)
