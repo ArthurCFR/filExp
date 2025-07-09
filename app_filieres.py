@@ -480,9 +480,19 @@ def main():
                         )
                         
                         # Niveau d'autonomie
-                        nouveau_niveau_autonomie = st.text_input(
+                        options_autonomie = [
+                            "Besoin d'accompagnement faible",
+                            "Besoin d'accompagnement modéré",
+                            "Besoin d'accompagnement fort",
+                            "Besoin d'accompagnement très fort"
+                        ]
+                        valeur_actuelle = filiere_data.get('niveau_autonomie', options_autonomie[0])
+                        if valeur_actuelle not in options_autonomie:
+                            valeur_actuelle = options_autonomie[0]
+                        nouveau_niveau_autonomie = st.selectbox(
                             "Niveau d'autonomie",
-                            value=filiere_data.get('niveau_autonomie', ''),
+                            options_autonomie,
+                            index=options_autonomie.index(valeur_actuelle),
                             key=f"autonomie_{filiere_a_editer}"
                         )
                         # Nombre de fiches d'opportunité
