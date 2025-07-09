@@ -664,7 +664,7 @@ def main():
         # Vérifier s'il y a des filières éditées
         filieres_editees = []
         for key in st.session_state.keys():
-            if isinstance(key, str) and (key.startswith("etat_") or key.startswith("ref_") or key.startswith("attention_")):
+            if isinstance(key, str) and any(key.startswith(prefix) for prefix in ["etat_", "ref_", "attention_", "refdelegues_", "collabIAGen_", "collabTotal_", "autonomie_", "fopp_", "gpt_", "copilot_", "usages_", "events_"]):
                 filiere_key = key.split("_", 1)[1]
                 if filiere_key in filieres and filiere_key not in filieres_editees:
                     filieres_editees.append(filiere_key)
@@ -672,6 +672,18 @@ def main():
         # Vérifier chaque filière éditée
         for filiere_key in filieres_editees:
             filiere_data = filieres[filiere_key]
+            
+            # Vérifier les usages phares
+            usages_originaux = '\n'.join(filiere_data.get('usages_phares', []))
+            usages_session = st.session_state.get(f"usages_{filiere_key}", usages_originaux)
+            
+            # Vérifier les événements récents
+            events_originaux = []
+            for event in filiere_data.get('evenements_recents', []):
+                events_originaux.append(f"{event.get('date', '')};{event.get('titre', '')};{event.get('description', '')}")
+            events_text_original = '\n'.join(events_originaux)
+            events_session = st.session_state.get(f"events_{filiere_key}", events_text_original)
+            
             if (st.session_state.get(f"ref_{filiere_key}", "") != filiere_data.get('referent_metier', '') or
                 st.session_state.get(f"refdelegues_{filiere_key}", 0) != filiere_data.get('nombre_referents_delegues', 0) or
                 st.session_state.get(f"collabIAGen_{filiere_key}", 0) != filiere_data.get('nombre_collaborateurs_sensibilises', 0) or
@@ -681,7 +693,9 @@ def main():
                 st.session_state.get(f"etat_{filiere_key}", "") != filiere_data.get('etat_avancement', '') or
                 st.session_state.get(f"gpt_{filiere_key}", 0) != filiere_data.get('acces', {}).get('laposte_gpt', 0) or
                 st.session_state.get(f"copilot_{filiere_key}", 0) != filiere_data.get('acces', {}).get('copilot_licences', 0) or
-                st.session_state.get(f"attention_{filiere_key}", "") != filiere_data.get('point_attention', '')):
+                st.session_state.get(f"attention_{filiere_key}", "") != filiere_data.get('point_attention', '') or
+                usages_session != usages_originaux or
+                events_session != events_text_original):
                 return True
         return False
     
@@ -706,7 +720,9 @@ def main():
         col1, col2, col3 = st.columns([1, 1, 1])
         with col1:
             if st.button("💾 Sauvegarder et continuer", key="save_and_change_mode"):
+                # Déclencher la sauvegarde immédiatement
                 st.session_state.force_save_global = True
+                st.session_state.trigger_save_from_dialog = True
                 st.session_state.show_mode_change_dialog = False
                 st.rerun()
         
@@ -715,7 +731,7 @@ def main():
                 # Nettoyer les changements du session_state
                 keys_to_remove = []
                 for key in st.session_state.keys():
-                    if isinstance(key, str) and any(key.startswith(prefix) for prefix in ["etat_", "ref_", "attention_", "refdelegues_", "collabIAGen_", "collabTotal_", "autonomie_", "fopp_", "gpt_", "copilot_"]):
+                    if isinstance(key, str) and any(key.startswith(prefix) for prefix in ["etat_", "ref_", "attention_", "refdelegues_", "collabIAGen_", "collabTotal_", "autonomie_", "fopp_", "gpt_", "copilot_", "usages_", "events_"]):
                         keys_to_remove.append(key)
                 for key in keys_to_remove:
                     del st.session_state[key]
@@ -964,6 +980,17 @@ def main():
             def detecter_changements(filiere_key, filiere_data):
                 """Détecte si des changements ont été faits dans les champs"""
                 if f"ref_{filiere_key}" in st.session_state:
+                    # Vérifier les usages phares
+                    usages_originaux = '\n'.join(filiere_data.get('usages_phares', []))
+                    usages_session = st.session_state.get(f"usages_{filiere_key}", usages_originaux)
+                    
+                    # Vérifier les événements récents
+                    events_originaux = []
+                    for event in filiere_data.get('evenements_recents', []):
+                        events_originaux.append(f"{event.get('date', '')};{event.get('titre', '')};{event.get('description', '')}")
+                    events_text_original = '\n'.join(events_originaux)
+                    events_session = st.session_state.get(f"events_{filiere_key}", events_text_original)
+                    
                     return (
                         st.session_state.get(f"ref_{filiere_key}", "") != filiere_data.get('referent_metier', '') or
                         st.session_state.get(f"refdelegues_{filiere_key}", 0) != filiere_data.get('nombre_referents_delegues', 0) or
@@ -974,7 +1001,9 @@ def main():
                         st.session_state.get(f"etat_{filiere_key}", "") != filiere_data.get('etat_avancement', '') or
                         st.session_state.get(f"gpt_{filiere_key}", 0) != filiere_data.get('acces', {}).get('laposte_gpt', 0) or
                         st.session_state.get(f"copilot_{filiere_key}", 0) != filiere_data.get('acces', {}).get('copilot_licences', 0) or
-                        st.session_state.get(f"attention_{filiere_key}", "") != filiere_data.get('point_attention', '')
+                        st.session_state.get(f"attention_{filiere_key}", "") != filiere_data.get('point_attention', '') or
+                        usages_session != usages_originaux or
+                        events_session != events_text_original
                     )
                 return False
             
@@ -1241,8 +1270,9 @@ def main():
                     
                     # Logique de sauvegarde
                     force_save = st.session_state.get("force_save", False) or st.session_state.get("force_save_global", False)
+                    trigger_save_from_dialog = st.session_state.get("trigger_save_from_dialog", False)
                     
-                    if force_save or save_clicked:
+                    if force_save or save_clicked or trigger_save_from_dialog:
                             # Convertir les données
                             nouveaux_usages = [usage.strip() for usage in nouveaux_usages_text.split('\n') if usage.strip()]
                             
@@ -1279,11 +1309,12 @@ def main():
                                 st.session_state["success_timestamp"] = datetime.now().timestamp()
                                 
                                 # Nettoyer les flags de sauvegarde
+                                st.session_state["trigger_save_from_dialog"] = False
                                 
                                 # Nettoyer les variables de modification pour éviter la détection continue
                                 keys_to_clean = []
                                 for key in st.session_state.keys():
-                                    if isinstance(key, str) and any(key.startswith(prefix) for prefix in ["etat_", "ref_", "attention_", "refdelegues_", "collabIAGen_", "collabTotal_", "autonomie_", "fopp_", "gpt_", "copilot_"]):
+                                    if isinstance(key, str) and any(key.startswith(prefix) for prefix in ["etat_", "ref_", "attention_", "refdelegues_", "collabIAGen_", "collabTotal_", "autonomie_", "fopp_", "gpt_", "copilot_", "usages_", "events_"]):
                                         if key.endswith(filiere_a_editer):
                                             keys_to_clean.append(key)
                                 for key in keys_to_clean:
