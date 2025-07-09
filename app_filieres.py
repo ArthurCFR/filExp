@@ -476,20 +476,27 @@ def main():
     for i, dept in enumerate(departements_ordonnes):
         couleur_par_departement[dept] = app_colors[i % len(app_colors)]
     
+    # Debug : afficher le mapping (à supprimer après test)
+    # st.write("DEBUG - Mapping couleurs:", couleur_par_departement)
+    
     # Affichage des pie charts
     col1, col_divider, col2 = st.columns([5, 1, 5])
     
     with col1:
         if laposte_gpt_data:
             if PLOTLY_AVAILABLE:
-                # Créer la séquence de couleurs dans l'ordre des données
+                # Créer un mapping couleur direct pour Plotly
                 couleurs_laposte = [couleur_par_departement[dept] for dept in laposte_gpt_data.keys()]
                 
                 fig1 = px.pie(
                     values=list(laposte_gpt_data.values()),
                     names=list(laposte_gpt_data.keys()),
-                    title="🔑 Accès LaPoste GPT",
-                    color_discrete_sequence=couleurs_laposte
+                    title="🔑 Accès LaPoste GPT"
+                )
+                
+                # Assigner les couleurs manuellement pour chaque segment
+                fig1.update_traces(
+                    marker=dict(colors=couleurs_laposte)
                 )
                 fig1.update_layout(
                     height=300,
@@ -528,14 +535,18 @@ def main():
     with col2:
         if copilot_data:
             if PLOTLY_AVAILABLE:
-                # Créer la séquence de couleurs dans l'ordre des données
+                # Créer un mapping couleur direct pour Plotly
                 couleurs_copilot = [couleur_par_departement[dept] for dept in copilot_data.keys()]
                 
                 fig2 = px.pie(
                     values=list(copilot_data.values()),
                     names=list(copilot_data.keys()),
-                    title="📋 Licences Copilot",
-                    color_discrete_sequence=couleurs_copilot
+                    title="📋 Licences Copilot"
+                )
+                
+                # Assigner les couleurs manuellement pour chaque segment
+                fig2.update_traces(
+                    marker=dict(colors=couleurs_copilot)
                 )
                 fig2.update_layout(
                     height=300,
