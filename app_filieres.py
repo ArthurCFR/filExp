@@ -977,7 +977,7 @@ def main():
                 
                 # Container pour l'édition
                 with st.container(border=True):
-                    st.subheader(f"Édition : {filiere_data.get('icon', '📁')} {filiere_data.get('nom', 'Filière')}")
+                    st.subheader(f"{filiere_data.get('icon', '📁')} {filiere_data.get('nom', 'Filière')}")
                     
                     # --- État d'avancement placé à part, en haut ---
                     etats_labels_custom = {
