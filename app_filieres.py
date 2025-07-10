@@ -358,306 +358,335 @@ def main():
     filieres = data.get('filieres', {})
     etats_config = data.get('etats_avancement', {})
     
-    # Titre principal
-    st.title("📊 Tableau de bord des filières support - La Poste")
-    st.markdown("### Expérimentations sur les outils IA Génératifs")
-    
-    # Sidebar pour les filtres
-    st.sidebar.header("🔍 Filtres")
-    
-    # Filtre par état d'avancement
-    etats_labels_custom = {
-        'prompts_deployes': 'AVANCÉ',
-        'tests_realises': 'INTERMÉDIAIRE',
-        'en_emergence': 'EN ÉMERGENCE',
-        'a_initier': 'À INITIER'
-    }
-    
-    etats_disponibles = ['Tous'] + list(etats_config.keys())
-    filtre_etat = st.sidebar.selectbox(
-        "État d'avancement",
-        etats_disponibles,
-        format_func=lambda x: "Tous" if x == "Tous" else etats_labels_custom.get(x, etats_config.get(x, {}).get('label', x))
-    )
-    
-    # Filtre par référent métier
-    referents = ['Tous'] + list(set([f.get('referent_metier', '') for f in filieres.values() if f.get('referent_metier', '')]))
-    filtre_referent = st.sidebar.selectbox("Référent métier", referents)
-    
-    # Statistiques globales
-    st.header("📈 Statistiques globales")
-    
-    col1, col2, col3, col4 = st.columns(4)
-    
-    with col1:
-        st.metric("Total des filières", len(filieres))
-    
-    with col2:
-        total_testeurs = sum([f.get('nombre_testeurs', 0) for f in filieres.values()])
-        st.metric("Total des testeurs", total_testeurs)
-    
-    with col3:
-        total_laposte_gpt = sum([f.get('acces', {}).get('laposte_gpt', 0) for f in filieres.values()])
-        st.metric("Accès LaPoste GPT", total_laposte_gpt)
-    
-    with col4:
-        total_copilot = sum([f.get('acces', {}).get('copilot_licences', 0) for f in filieres.values()])
-        st.metric("Licences Copilot", total_copilot)
-    
-    # Répartition par état
-    st.subheader("🎯 Répartition par état d'avancement")
-    etat_counts = {}
-    for filiere in filieres.values():
-        etat = filiere.get('etat_avancement', 'initialisation')
-        etat_counts[etat] = etat_counts.get(etat, 0) + 1
-    
-    # Mapping des états avec les nouveaux textes
-    etats_labels_custom = {
-        'prompts_deployes': 'AVANCÉ - Les COSUI sont réguliers et les expérimentations en cours',
-        'tests_realises': 'INTERMÉDIAIRE - Échanges en cours avec les référents métiers - premiers COSUI et/ou quelques expérimentations en démarrage',
-        'en_emergence': 'EN ÉMERGENCE - Des opportunités IAGen ont été identifiées - pas de COSUI ni d\'expérimentation en cours',
-        'a_initier': 'À INITIER - Filière à engager (pas ou peu de FOPP, contact à initier avec un référent métier)'
-    }
-    
-    cols = st.columns(len(etats_config))
-    for i, (etat_key, etat_info) in enumerate(etats_config.items()):
-        with cols[i]:
-            count = etat_counts.get(etat_key, 0)
-            # Utiliser le label personnalisé s'il existe
-            label = etats_labels_custom.get(etat_key, etat_info.get('label', etat_key))
-            # Pour l'affichage dans la métrique, on peut raccourcir
-            short_label = label.split(' - ')[0] if ' - ' in label else label
-            st.metric(
-                short_label,
-                count,
-                help=label  # Le texte complet apparaît au survol
-            )
-    
-    # Filtrage des filières
-    filieres_filtrees = {}
-    for key, filiere in filieres.items():
-        # Filtre par état
-        if filtre_etat != 'Tous' and filiere.get('etat_avancement') != filtre_etat:
-            continue
-        
-        # Filtre par référent
-        if filtre_referent != 'Tous' and filiere.get('referent_metier') != filtre_referent:
-            continue
-        
-        filieres_filtrees[key] = filiere
-    
-    # Pie charts pour les accès aux outils
-    st.markdown("### 📊 Répartition des accès aux outils")
-    
-    # Préparation des données pour les pie charts
-    laposte_gpt_data = {}
-    copilot_data = {}
-    
-    for key, filiere in filieres_filtrees.items():
-        nom_filiere = filiere.get('nom', 'Filière inconnue')
-        laposte_gpt_count = filiere.get('acces', {}).get('laposte_gpt', 0)
-        copilot_count = filiere.get('acces', {}).get('copilot_licences', 0)
-        
-        if laposte_gpt_count > 0:
-            laposte_gpt_data[nom_filiere] = laposte_gpt_count
-        if copilot_count > 0:
-            copilot_data[nom_filiere] = copilot_count
-    
-    # Palette de couleurs cohérente avec l'application - Version pastel (30% plus claire)
-    def make_pastel(hex_color, lightness_factor=0.3):
-        """Convertit une couleur hex en version pastel"""
-        # Supprimer le # si présent
-        hex_color = hex_color.lstrip('#')
-        
-        # Convertir en RGB
-        r = int(hex_color[0:2], 16)
-        g = int(hex_color[2:4], 16)
-        b = int(hex_color[4:6], 16)
-        
-        # Éclaircir en mélangeant avec du blanc
-        r = int(r + (255 - r) * lightness_factor)
-        g = int(g + (255 - g) * lightness_factor)
-        b = int(b + (255 - b) * lightness_factor)
-        
-        # Reconvertir en hex
-        return f"#{r:02x}{g:02x}{b:02x}"
-    
-    # Palette harmonieuse basée sur les couleurs demandées
-    app_colors = [
-        '#A5D6A7',  # Vert pastel
-        '#87CEEB',  # Bleu ciel
-        '#FFCC80',  # Orange pastel
-        '#F8BBD9',  # Rose pastel (couleur harmonieuse)
-        '#D1C4E9',  # Violet pastel (couleur harmonieuse)
-        '#FFAB91',  # Saumon pastel (couleur harmonieuse)
-        '#80CBC4',  # Turquoise pastel (couleur harmonieuse)
-        '#FFF176',  # Jaune pastel (couleur harmonieuse)
-        '#C8E6C9',  # Vert très clair (variation)
-        '#B3E5FC',  # Bleu très clair (variation)
-        '#FFE0B2',  # Orange très clair (variation)
-        '#E1BEE7',  # Violet très clair (variation)
-        '#FFCDD2',  # Rose très clair (variation)
-        '#B2DFDB',  # Turquoise très clair (variation)
-        '#F0F4C3',  # Jaune très clair (variation)
-        '#DCEDC8',  # Vert lime clair (variation)
-        '#BBDEFB',  # Bleu clair (variation)
-        '#FFECB3',  # Ambre clair (variation)
-        '#F3E5F5',  # Violet très pâle (variation)
-        '#FCE4EC',  # Rose très pâle (variation)
-        '#E0F2F1',  # Turquoise très pâle (variation)
-        '#FFFDE7',  # Jaune très pâle (variation)
-        '#E8F5E8',  # Vert très pâle (variation)
-        '#E3F2FD',  # Bleu très pâle (variation)
-        '#FFF8E1',  # Orange très pâle (variation)
-        '#F9FBE7',  # Lime très pâle (variation)
-        '#FFF3E0',  # Orange doux (variation)
-        '#E8EAF6',  # Indigo pâle (variation)
-        '#FFEBEE',  # Rouge pâle (variation)
-        '#E0F7FA',  # Cyan pâle (variation)
-        '#F1F8E9',  # Vert doux (variation)
-        '#E1F5FE',  # Bleu doux (variation)
-        '#FFF9C4',  # Jaune doux (variation)
-        '#E4C441',  # Doré doux (variation)
-        '#AED581',  # Vert lime doux (variation)
-        '#4FC3F7',  # Bleu vif doux (variation)
-        '#FFB74D',  # Orange vif doux (variation)
-        '#BA68C8',  # Violet vif doux (variation)
-        '#F06292',  # Rose vif doux (variation)
-        '#4DB6AC'   # Turquoise vif doux (variation)
-    ]
-    
-    # Créer un mapping couleur fixe par département pour TOUS les départements
-    tous_departements = set()
-    for key, filiere in filieres_filtrees.items():
-        nom_filiere = filiere.get('nom', 'Filière inconnue')
-        tous_departements.add(nom_filiere)  # Tous les départements, pas seulement ceux avec accès
-    
-    # Trier les départements pour un ordre cohérent
-    departements_ordonnes = sorted(tous_departements)
-    
-    # Vérifier qu'il y a assez de couleurs
-    if len(departements_ordonnes) > len(app_colors):
-        st.warning(f"⚠️ Il y a {len(departements_ordonnes)} filières mais seulement {len(app_colors)} couleurs disponibles. Certaines couleurs seront répétées.")
-    
-    # Créer un mapping département -> couleur FIXE pour tous les départements
-    couleur_par_departement = {}
-    for i, dept in enumerate(departements_ordonnes):
-        couleur_par_departement[dept] = app_colors[i % len(app_colors)]
-    
-    # Debug : afficher le mapping (à supprimer après test)
-    # st.write("DEBUG - Mapping couleurs:", couleur_par_departement)
-    
-    # Affichage des pie charts
-    col1, col_divider, col2 = st.columns([5, 1, 5])
-    
-    with col1:
-        if laposte_gpt_data:
-            if PLOTLY_AVAILABLE:
-                # Créer un mapping couleur direct pour Plotly
-                couleurs_laposte = [couleur_par_departement[dept] for dept in laposte_gpt_data.keys()]
-                
-                total_laposte_gpt = sum(laposte_gpt_data.values())
-                fig1 = px.pie(
-                    values=list(laposte_gpt_data.values()),
-                    names=list(laposte_gpt_data.keys()),
-                    title=f"🔑 Accès LaPoste GPT <i>(Total : {total_laposte_gpt})</i>"
-                )
-                
-                # Assigner les couleurs manuellement pour chaque segment
-                fig1.update_traces(
-                    marker=dict(colors=couleurs_laposte)
-                )
-                fig1.update_layout(
-                    height=300,
-                    margin=dict(t=50, b=20, l=20, r=20),
-                    font=dict(size=10),
-                    showlegend=True,
-                    legend=dict(orientation="v", yanchor="middle", y=0.5, xanchor="left", x=1.02)
-                )
-                fig1.update_traces(textposition='inside', textinfo='percent+label')
-                st.plotly_chart(fig1, use_container_width=True)
-            elif MATPLOTLIB_AVAILABLE:
-                # Créer la séquence de couleurs pour matplotlib
-                couleurs_laposte = [couleur_par_departement[dept] for dept in laposte_gpt_data.keys()]
-                
-                total_laposte_gpt = sum(laposte_gpt_data.values())
-                fig, ax = plt.subplots(figsize=(6, 4))
-                ax.pie(list(laposte_gpt_data.values()), labels=list(laposte_gpt_data.keys()), 
-                       autopct='%1.1f%%', colors=couleurs_laposte)
-                ax.set_title(f"🔑 Accès LaPoste GPT ({total_laposte_gpt} total)", style='italic')
-                st.pyplot(fig)
-                plt.close(fig)
-            else:
-                # Fallback: simple text display
-                total = sum(laposte_gpt_data.values())
-                for filiere, count in laposte_gpt_data.items():
-                    percentage = (count / total) * 100
-                    st.write(f"• {filiere}: {count} accès ({percentage:.1f}%)")
-        else:
-            st.info("Aucun accès LaPoste GPT configuré")
-    
-    with col_divider:
-        # Divider vertical léger
-        st.markdown("""
-        <div style='height: 300px; width: 1px; background-color: #dee2e6; margin: 0 auto;'></div>
-        """, unsafe_allow_html=True)
-    
-    with col2:
-        if copilot_data:
-            if PLOTLY_AVAILABLE:
-                # Créer un mapping couleur direct pour Plotly
-                couleurs_copilot = [couleur_par_departement[dept] for dept in copilot_data.keys()]
-                
-                total_copilot = sum(copilot_data.values())
-                fig2 = px.pie(
-                    values=list(copilot_data.values()),
-                    names=list(copilot_data.keys()),
-                    title=f"📋 Licences Copilot <i>(Total : {total_copilot})</i>"
-                )
-                
-                # Assigner les couleurs manuellement pour chaque segment
-                fig2.update_traces(
-                    marker=dict(colors=couleurs_copilot)
-                )
-                fig2.update_layout(
-                    height=300,
-                    margin=dict(t=50, b=20, l=20, r=20),
-                    font=dict(size=10),
-                    showlegend=True,
-                    legend=dict(orientation="v", yanchor="middle", y=0.5, xanchor="left", x=1.02)
-                )
-                fig2.update_traces(textposition='inside', textinfo='percent+label')
-                st.plotly_chart(fig2, use_container_width=True)
-            elif MATPLOTLIB_AVAILABLE:
-                # Créer la séquence de couleurs pour matplotlib
-                couleurs_copilot = [couleur_par_departement[dept] for dept in copilot_data.keys()]
-                
-                total_copilot = sum(copilot_data.values())
-                fig, ax = plt.subplots(figsize=(6, 4))
-                ax.pie(list(copilot_data.values()), labels=list(copilot_data.keys()), 
-                       autopct='%1.1f%%', colors=couleurs_copilot)
-                ax.set_title(f"📋 Licences Copilot ({total_copilot} total)", style='italic')
-                st.pyplot(fig)
-                plt.close(fig)
-            else:
-                # Fallback: simple text display
-                total = sum(copilot_data.values())
-                for filiere, count in copilot_data.items():
-                    percentage = (count / total) * 100
-                    st.write(f"• {filiere}: {count} licences ({percentage:.1f}%)")
-        else:
-            st.info("Aucune licence Copilot configurée")
-    
-    # Affichage des fiches
-    st.header("🗂️ Fiches d'avancement des filières")
-    st.write(f"*{len(filieres_filtrees)} filière(s) affichée(s)*")
-    
+    # Mode d'affichage selection first
     mode_affichage = st.radio(
         "Mode d'affichage",
         ["Cartes", "Tableau", "Édition"],
         horizontal=True,
         key="mode_affichage_radio"
     )
+    
+    # Show everything except in Edition mode
+    if mode_affichage != "Édition":
+        # Titre principal
+        st.title("📊 Tableau de bord des filières support - La Poste")
+        st.markdown("### Expérimentations sur les outils IA Génératifs")
+        
+        # Sidebar pour les filtres
+        st.sidebar.header("🔍 Filtres")
+        
+        # Filtre par état d'avancement
+        etats_labels_custom = {
+            'prompts_deployes': 'AVANCÉ',
+            'tests_realises': 'INTERMÉDIAIRE',
+            'en_emergence': 'EN ÉMERGENCE',
+            'a_initier': 'À INITIER'
+        }
+        
+        etats_disponibles = ['Tous'] + list(etats_config.keys())
+        filtre_etat = st.sidebar.selectbox(
+            "État d'avancement",
+            etats_disponibles,
+            format_func=lambda x: "Tous" if x == "Tous" else etats_labels_custom.get(x, etats_config.get(x, {}).get('label', x))
+        )
+        
+        # Filtre par référent métier
+        referents = ['Tous'] + list(set([f.get('referent_metier', '') for f in filieres.values() if f.get('referent_metier', '')]))
+        filtre_referent = st.sidebar.selectbox("Référent métier", referents)
+        
+        # Statistiques globales
+        st.header("📈 Statistiques globales")
+        
+        col1, col2, col3, col4 = st.columns(4)
+        
+        with col1:
+            st.metric("Total des filières", len(filieres))
+        
+        with col2:
+            total_testeurs = sum([f.get('nombre_testeurs', 0) for f in filieres.values()])
+            st.metric("Total des testeurs", total_testeurs)
+        
+        with col3:
+            total_laposte_gpt = sum([f.get('acces', {}).get('laposte_gpt', 0) for f in filieres.values()])
+            st.metric("Accès LaPoste GPT", total_laposte_gpt)
+        
+        with col4:
+            total_copilot = sum([f.get('acces', {}).get('copilot_licences', 0) for f in filieres.values()])
+            st.metric("Licences Copilot", total_copilot)
+        
+        # Répartition par état
+        st.subheader("🎯 Répartition par état d'avancement")
+        etat_counts = {}
+        for filiere in filieres.values():
+            etat = filiere.get('etat_avancement', 'initialisation')
+            etat_counts[etat] = etat_counts.get(etat, 0) + 1
+        
+        # Mapping des états avec les nouveaux textes
+        etats_labels_custom = {
+            'prompts_deployes': 'AVANCÉ - Les COSUI sont réguliers et les expérimentations en cours',
+            'tests_realises': 'INTERMÉDIAIRE - Échanges en cours avec les référents métiers - premiers COSUI et/ou quelques expérimentations en démarrage',
+            'en_emergence': 'EN ÉMERGENCE - Des opportunités IAGen ont été identifiées - pas de COSUI ni d\'expérimentation en cours',
+            'a_initier': 'À INITIER - Filière à engager (pas ou peu de FOPP, contact à initier avec un référent métier)'
+        }
+        
+        cols = st.columns(len(etats_config))
+        for i, (etat_key, etat_info) in enumerate(etats_config.items()):
+            with cols[i]:
+                count = etat_counts.get(etat_key, 0)
+                # Utiliser le label personnalisé s'il existe
+                label = etats_labels_custom.get(etat_key, etat_info.get('label', etat_key))
+                # Pour l'affichage dans la métrique, on peut raccourcir
+                short_label = label.split(' - ')[0] if ' - ' in label else label
+                st.metric(
+                    short_label,
+                    count,
+                    help=label  # Le texte complet apparaît au survol
+                )
+        
+        # Filtrage des filières
+        filieres_filtrees = {}
+        for key, filiere in filieres.items():
+            # Filtre par état
+            if filtre_etat != 'Tous' and filiere.get('etat_avancement') != filtre_etat:
+                continue
+            
+            # Filtre par référent
+            if filtre_referent != 'Tous' and filiere.get('referent_metier') != filtre_referent:
+                continue
+            
+            filieres_filtrees[key] = filiere
+        
+        # Pie charts pour les accès aux outils
+        st.markdown("### 📊 Répartition des accès aux outils")
+        
+        # Préparation des données pour les pie charts
+        laposte_gpt_data = {}
+        copilot_data = {}
+        
+        for key, filiere in filieres_filtrees.items():
+            nom_filiere = filiere.get('nom', 'Filière inconnue')
+            laposte_gpt_count = filiere.get('acces', {}).get('laposte_gpt', 0)
+            copilot_count = filiere.get('acces', {}).get('copilot_licences', 0)
+            
+            if laposte_gpt_count > 0:
+                laposte_gpt_data[nom_filiere] = laposte_gpt_count
+            if copilot_count > 0:
+                copilot_data[nom_filiere] = copilot_count
+        
+        # Palette de couleurs cohérente avec l'application - Version pastel (30% plus claire)
+        def make_pastel(hex_color, lightness_factor=0.3):
+            """Convertit une couleur hex en version pastel"""
+            # Supprimer le # si présent
+            hex_color = hex_color.lstrip('#')
+            
+            # Convertir en RGB
+            r = int(hex_color[0:2], 16)
+            g = int(hex_color[2:4], 16)
+            b = int(hex_color[4:6], 16)
+            
+            # Éclaircir en mélangeant avec du blanc
+            r = int(r + (255 - r) * lightness_factor)
+            g = int(g + (255 - g) * lightness_factor)
+            b = int(b + (255 - b) * lightness_factor)
+            
+            # Reconvertir en hex
+            return f"#{r:02x}{g:02x}{b:02x}"
+        
+        # Palette harmonieuse basée sur les couleurs demandées
+        app_colors = [
+            '#A5D6A7',  # Vert pastel
+            '#87CEEB',  # Bleu ciel
+            '#FFCC80',  # Orange pastel
+            '#F8BBD9',  # Rose pastel (couleur harmonieuse)
+            '#D1C4E9',  # Violet pastel (couleur harmonieuse)
+            '#FFAB91',  # Saumon pastel (couleur harmonieuse)
+            '#80CBC4',  # Turquoise pastel (couleur harmonieuse)
+            '#FFF176',  # Jaune pastel (couleur harmonieuse)
+            '#C8E6C9',  # Vert très clair (variation)
+            '#B3E5FC',  # Bleu très clair (variation)
+            '#FFE0B2',  # Orange très clair (variation)
+            '#E1BEE7',  # Violet très clair (variation)
+            '#FFCDD2',  # Rose très clair (variation)
+            '#B2DFDB',  # Turquoise très clair (variation)
+            '#F0F4C3',  # Jaune très clair (variation)
+            '#DCEDC8',  # Vert lime clair (variation)
+            '#BBDEFB',  # Bleu clair (variation)
+            '#FFECB3',  # Ambre clair (variation)
+            '#F3E5F5',  # Violet très pâle (variation)
+            '#FCE4EC',  # Rose très pâle (variation)
+            '#E0F2F1',  # Turquoise très pâle (variation)
+            '#FFFDE7',  # Jaune très pâle (variation)
+            '#E8F5E8',  # Vert très pâle (variation)
+            '#E3F2FD',  # Bleu très pâle (variation)
+            '#FFF8E1',  # Orange très pâle (variation)
+            '#F9FBE7',  # Lime très pâle (variation)
+            '#FFF3E0',  # Orange doux (variation)
+            '#E8EAF6',  # Indigo pâle (variation)
+            '#FFEBEE',  # Rouge pâle (variation)
+            '#E0F7FA',  # Cyan pâle (variation)
+            '#F1F8E9',  # Vert doux (variation)
+            '#E1F5FE',  # Bleu doux (variation)
+            '#FFF9C4',  # Jaune doux (variation)
+            '#E4C441',  # Doré doux (variation)
+            '#AED581',  # Vert lime doux (variation)
+            '#4FC3F7',  # Bleu vif doux (variation)
+            '#FFB74D',  # Orange vif doux (variation)
+            '#BA68C8',  # Violet vif doux (variation)
+            '#F06292',  # Rose vif doux (variation)
+            '#4DB6AC'   # Turquoise vif doux (variation)
+        ]
+        
+        # Créer un mapping couleur fixe par département pour TOUS les départements
+        tous_departements = set()
+        for key, filiere in filieres_filtrees.items():
+            nom_filiere = filiere.get('nom', 'Filière inconnue')
+            tous_departements.add(nom_filiere)  # Tous les départements, pas seulement ceux avec accès
+        
+        # Trier les départements pour un ordre cohérent
+        departements_ordonnes = sorted(tous_departements)
+        
+        # Vérifier qu'il y a assez de couleurs
+        if len(departements_ordonnes) > len(app_colors):
+            st.warning(f"⚠️ Il y a {len(departements_ordonnes)} filières mais seulement {len(app_colors)} couleurs disponibles. Certaines couleurs seront répétées.")
+        
+        # Créer un mapping département -> couleur FIXE pour tous les départements
+        couleur_par_departement = {}
+        for i, dept in enumerate(departements_ordonnes):
+            couleur_par_departement[dept] = app_colors[i % len(app_colors)]
+        
+        # Debug : afficher le mapping (à supprimer après test)
+        # st.write("DEBUG - Mapping couleurs:", couleur_par_departement)
+        
+        # Affichage des pie charts
+        col1, col_divider, col2 = st.columns([5, 1, 5])
+        
+        with col1:
+            if laposte_gpt_data:
+                if PLOTLY_AVAILABLE:
+                    # Créer un mapping couleur direct pour Plotly
+                    couleurs_laposte = [couleur_par_departement[dept] for dept in laposte_gpt_data.keys()]
+                    
+                    total_laposte_gpt = sum(laposte_gpt_data.values())
+                    fig1 = px.pie(
+                        values=list(laposte_gpt_data.values()),
+                        names=list(laposte_gpt_data.keys()),
+                        title=f"🔑 Accès LaPoste GPT <i>(Total : {total_laposte_gpt})</i>"
+                    )
+                    
+                    # Assigner les couleurs manuellement pour chaque segment
+                    fig1.update_traces(
+                        marker=dict(colors=couleurs_laposte)
+                    )
+                    fig1.update_layout(
+                        height=300,
+                        margin=dict(t=50, b=20, l=20, r=20),
+                        font=dict(size=10),
+                        showlegend=True,
+                        legend=dict(orientation="v", yanchor="middle", y=0.5, xanchor="left", x=1.02)
+                    )
+                    fig1.update_traces(textposition='inside', textinfo='percent+label')
+                    st.plotly_chart(fig1, use_container_width=True)
+                elif MATPLOTLIB_AVAILABLE:
+                    # Créer la séquence de couleurs pour matplotlib
+                    couleurs_laposte = [couleur_par_departement[dept] for dept in laposte_gpt_data.keys()]
+                    
+                    total_laposte_gpt = sum(laposte_gpt_data.values())
+                    fig, ax = plt.subplots(figsize=(6, 4))
+                    ax.pie(list(laposte_gpt_data.values()), labels=list(laposte_gpt_data.keys()), 
+                           autopct='%1.1f%%', colors=couleurs_laposte)
+                    ax.set_title(f"🔑 Accès LaPoste GPT ({total_laposte_gpt} total)", style='italic')
+                    st.pyplot(fig)
+                    plt.close(fig)
+                else:
+                    # Fallback: simple text display
+                    total = sum(laposte_gpt_data.values())
+                    for filiere, count in laposte_gpt_data.items():
+                        percentage = (count / total) * 100
+                        st.write(f"• {filiere}: {count} accès ({percentage:.1f}%)")
+            else:
+                st.info("Aucun accès LaPoste GPT configuré")
+        
+        with col_divider:
+            # Divider vertical léger
+            st.markdown("""
+            <div style='height: 300px; width: 1px; background-color: #dee2e6; margin: 0 auto;'></div>
+            """, unsafe_allow_html=True)
+        
+        with col2:
+            if copilot_data:
+                if PLOTLY_AVAILABLE:
+                    # Créer un mapping couleur direct pour Plotly
+                    couleurs_copilot = [couleur_par_departement[dept] for dept in copilot_data.keys()]
+                    
+                    total_copilot = sum(copilot_data.values())
+                    fig2 = px.pie(
+                        values=list(copilot_data.values()),
+                        names=list(copilot_data.keys()),
+                        title=f"📋 Licences Copilot <i>(Total : {total_copilot})</i>"
+                    )
+                    
+                    # Assigner les couleurs manuellement pour chaque segment
+                    fig2.update_traces(
+                        marker=dict(colors=couleurs_copilot)
+                    )
+                    fig2.update_layout(
+                        height=300,
+                        margin=dict(t=50, b=20, l=20, r=20),
+                        font=dict(size=10),
+                        showlegend=True,
+                        legend=dict(orientation="v", yanchor="middle", y=0.5, xanchor="left", x=1.02)
+                    )
+                    fig2.update_traces(textposition='inside', textinfo='percent+label')
+                    st.plotly_chart(fig2, use_container_width=True)
+                elif MATPLOTLIB_AVAILABLE:
+                    # Créer la séquence de couleurs pour matplotlib
+                    couleurs_copilot = [couleur_par_departement[dept] for dept in copilot_data.keys()]
+                    
+                    total_copilot = sum(copilot_data.values())
+                    fig, ax = plt.subplots(figsize=(6, 4))
+                    ax.pie(list(copilot_data.values()), labels=list(copilot_data.keys()), 
+                           autopct='%1.1f%%', colors=couleurs_copilot)
+                    ax.set_title(f"📋 Licences Copilot ({total_copilot} total)", style='italic')
+                    st.pyplot(fig)
+                    plt.close(fig)
+                else:
+                    # Fallback: simple text display
+                    total = sum(copilot_data.values())
+                    for filiere, count in copilot_data.items():
+                        percentage = (count / total) * 100
+                        st.write(f"• {filiere}: {count} licences ({percentage:.1f}%)")
+            else:
+                st.info("Aucune licence Copilot configurée")
+    else:
+        # In Edition mode, set up filters without showing statistics
+        etats_labels_custom = {
+            'prompts_deployes': 'AVANCÉ',
+            'tests_realises': 'INTERMÉDIAIRE',
+            'en_emergence': 'EN ÉMERGENCE',
+            'a_initier': 'À INITIER'
+        }
+        
+        etats_disponibles = ['Tous'] + list(etats_config.keys())
+        filtre_etat = 'Tous'  # Default filter in edition mode
+        filtre_referent = 'Tous'  # Default filter in edition mode
+        
+        # Filtrage des filières
+        filieres_filtrees = {}
+        for key, filiere in filieres.items():
+            # Filtre par état
+            if filtre_etat != 'Tous' and filiere.get('etat_avancement') != filtre_etat:
+                continue
+            
+            # Filtre par référent
+            if filtre_referent != 'Tous' and filiere.get('referent_metier') != filtre_referent:
+                continue
+            
+            filieres_filtrees[key] = filiere
+    
+    # Affichage des fiches
+    st.header("🗂️ Fiches d'avancement des filières")
+    if mode_affichage != "Édition":
+        st.write(f"*{len(filieres_filtrees)} filière(s) affichée(s)*")
     
     
     # Auto-refresh invisible - actualise automatiquement toutes les 15 secondes
