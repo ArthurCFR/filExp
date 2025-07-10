@@ -995,7 +995,20 @@ def main():
                     
                     # L'état pour la sauvegarde
                     nouvel_etat = st.session_state[f"etat_{filiere_a_editer}"]
-                                            # Niveau d'autonomie
+                    
+                    # Responsable Pôle Data - FIRST PARAMETER
+                    st.markdown("**👥 Responsable Pôle Data**")
+                    responsables_actuels = filiere_data.get('responsable_pole_data', [])
+                    responsables_options = ['Sarah', 'Clara', 'Olivier', 'Mouad', 'Arthur']
+                    
+                    nouveaux_responsables = st.multiselect(
+                        "Sélectionnez les responsables (plusieurs choix possibles)",
+                        options=responsables_options,
+                        default=responsables_actuels,
+                        key=f"responsables_{filiere_a_editer}"
+                    )
+                    
+                    # Niveau d'autonomie
                     options_autonomie = [
                         "Besoin d'accompagnement faible",
                         "Besoin d'accompagnement modéré",
@@ -1083,18 +1096,6 @@ def main():
                         height=80,
                         placeholder="Décrivez les points nécessitant une attention particulière...",
                         key=f"attention_{filiere_a_editer}"
-                    )
-                    
-                    # Responsable Pôle Data
-                    st.markdown("**👥 Responsable Pôle Data**")
-                    responsables_actuels = filiere_data.get('responsable_pole_data', [])
-                    responsables_options = ['Sarah', 'Clara', 'Olivier', 'Mouad', 'Arthur']
-                    
-                    nouveaux_responsables = st.multiselect(
-                        "Sélectionnez les responsables (plusieurs choix possibles)",
-                        options=responsables_options,
-                        default=responsables_actuels,
-                        key=f"responsables_{filiere_a_editer}"
                     )
                     
                     # Usages phares
