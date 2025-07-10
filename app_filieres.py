@@ -44,7 +44,8 @@ FILIERE_FIELDS = {
     "point_attention": "",
     "usages_phares": [],
     "acces": {"laposte_gpt": 0, "copilot_licences": 0},
-    "evenements_recents": []
+    "evenements_recents": [],
+    "responsable_pole_data": []
 }
 
 def migrate_filiere_fields(filiere):
@@ -142,8 +143,14 @@ def display_filiere_card(filiere_key, filiere_data, etats_config):
         # Titre avec icône et nombre total de collaborateurs
         nom_filiere = filiere_data.get('nom', 'Filière')
         nb_total_collab = filiere_data.get('nombre_collaborateurs_total', 0)
+        responsables = filiere_data.get('responsable_pole_data', [])
+        responsables_text = ", ".join(responsables) if responsables else ""
+        
         st.markdown(f"""
-        <h3>{filiere_data.get('icon', '📁')} {nom_filiere} <span style='font-weight: normal; font-style: italic; font-size: 0.8em;'>({nb_total_collab} collaborateurs)</span></h3>
+        <div style='position: relative;'>
+            <h3>{filiere_data.get('icon', '📁')} {nom_filiere} <span style='font-weight: normal; font-style: italic; font-size: 0.8em;'>({nb_total_collab} collaborateurs)</span></h3>
+            {f'<div style="position: absolute; top: 0; right: 0; font-size: 0.6em; color: #666; font-style: italic;">{responsables_text}</div>' if responsables_text else ''}
+        </div>
         """, unsafe_allow_html=True)
         
         # Badge d'état
@@ -366,8 +373,8 @@ def main():
         key="mode_affichage_radio"
     )
     
-    # Show everything except in Edition mode
-    if mode_affichage != "Édition":
+    # Show everything except in Edition and Tableau modes
+    if mode_affichage == "Cartes":
         # Titre principal
         st.title("📊 Tableau de bord des filières support - La Poste")
         st.markdown("### Expérimentations sur les outils IA Génératifs")
@@ -390,9 +397,9 @@ def main():
             format_func=lambda x: "Tous" if x == "Tous" else etats_labels_custom.get(x, etats_config.get(x, {}).get('label', x))
         )
         
-        # Filtre par référent métier
-        referents = ['Tous'] + list(set([f.get('referent_metier', '') for f in filieres.values() if f.get('referent_metier', '')]))
-        filtre_referent = st.sidebar.selectbox("Référent métier", referents)
+        # Filtre par responsable pôle data
+        responsables_pole_data = ['Tous', 'Sarah', 'Clara', 'Olivier', 'Mouad', 'Arthur']
+        filtre_responsable = st.sidebar.selectbox("Responsable Pôle Data", responsables_pole_data)
         
         # Statistiques globales
         st.header("📈 Statistiques globales")
@@ -450,9 +457,11 @@ def main():
             if filtre_etat != 'Tous' and filiere.get('etat_avancement') != filtre_etat:
                 continue
             
-            # Filtre par référent
-            if filtre_referent != 'Tous' and filiere.get('referent_metier') != filtre_referent:
-                continue
+            # Filtre par responsable pôle data
+            if filtre_responsable != 'Tous':
+                responsables_filiere = filiere.get('responsable_pole_data', [])
+                if filtre_responsable not in responsables_filiere:
+                    continue
             
             filieres_filtrees[key] = filiere
         
@@ -658,7 +667,7 @@ def main():
             else:
                 st.info("Aucune licence Copilot configurée")
     else:
-        # In Edition mode, set up filters without showing statistics
+        # In Edition and Tableau modes, set up filters without showing statistics
         etats_labels_custom = {
             'prompts_deployes': 'AVANCÉ',
             'tests_realises': 'INTERMÉDIAIRE',
@@ -667,8 +676,8 @@ def main():
         }
         
         etats_disponibles = ['Tous'] + list(etats_config.keys())
-        filtre_etat = 'Tous'  # Default filter in edition mode
-        filtre_referent = 'Tous'  # Default filter in edition mode
+        filtre_etat = 'Tous'  # Default filter in edition and tableau modes
+        filtre_responsable = 'Tous'  # Default filter in edition and tableau modes
         
         # Filtrage des filières
         filieres_filtrees = {}
@@ -677,15 +686,17 @@ def main():
             if filtre_etat != 'Tous' and filiere.get('etat_avancement') != filtre_etat:
                 continue
             
-            # Filtre par référent
-            if filtre_referent != 'Tous' and filiere.get('referent_metier') != filtre_referent:
-                continue
+            # Filtre par responsable pôle data
+            if filtre_responsable != 'Tous':
+                responsables_filiere = filiere.get('responsable_pole_data', [])
+                if filtre_responsable not in responsables_filiere:
+                    continue
             
             filieres_filtrees[key] = filiere
     
     # Affichage des fiches
     st.header("🗂️ Fiches d'avancement des filières")
-    if mode_affichage != "Édition":
+    if mode_affichage == "Cartes":
         st.write(f"*{len(filieres_filtrees)} filière(s) affichée(s)*")
     
     
@@ -1100,6 +1111,18 @@ def main():
                         key=f"attention_{filiere_a_editer}"
                     )
                     
+                    # Responsable Pôle Data
+                    st.markdown("**👥 Responsable Pôle Data**")
+                    responsables_actuels = filiere_data.get('responsable_pole_data', [])
+                    responsables_options = ['Sarah', 'Clara', 'Olivier', 'Mouad', 'Arthur']
+                    
+                    nouveaux_responsables = st.multiselect(
+                        "Sélectionnez les responsables (plusieurs choix possibles)",
+                        options=responsables_options,
+                        default=responsables_actuels,
+                        key=f"responsables_{filiere_a_editer}"
+                    )
+                    
                     # Usages phares
                     st.markdown("**🌟 Usages phares**")
                     usages_actuels = filiere_data.get('usages_phares', [])
@@ -1197,6 +1220,7 @@ def main():
                             filiere['point_attention'] = nouveau_point_attention
                             filiere['usages_phares'] = nouveaux_usages
                             filiere['evenements_recents'] = nouveaux_evenements
+                            filiere['responsable_pole_data'] = nouveaux_responsables
                             
                             # Sauvegarde
                             if save_data(data):
