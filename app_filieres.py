@@ -373,33 +373,48 @@ def main():
         key="mode_affichage_radio"
     )
     
-    # Show everything except in Edition and Tableau modes
+    # Sidebar pour les filtres - Available in all modes
+    st.sidebar.header("🔍 Filtres")
+    
+    # Filtre par état d'avancement
+    etats_labels_custom = {
+        'prompts_deployes': 'AVANCÉ',
+        'tests_realises': 'INTERMÉDIAIRE',
+        'en_emergence': 'EN ÉMERGENCE',
+        'a_initier': 'À INITIER'
+    }
+    
+    etats_disponibles = ['Tous'] + list(etats_config.keys())
+    filtre_etat = st.sidebar.selectbox(
+        "État d'avancement",
+        etats_disponibles,
+        format_func=lambda x: "Tous" if x == "Tous" else etats_labels_custom.get(x, etats_config.get(x, {}).get('label', x))
+    )
+    
+    # Filtre par responsable pôle data
+    responsables_pole_data = ['Tous', 'Sarah', 'Clara', 'Olivier', 'Mouad', 'Arthur']
+    filtre_responsable = st.sidebar.selectbox("Responsable Pôle Data", responsables_pole_data)
+    
+    # Filtrage des filières - Common for all modes
+    filieres_filtrees = {}
+    for key, filiere in filieres.items():
+        # Filtre par état
+        if filtre_etat != 'Tous' and filiere.get('etat_avancement') != filtre_etat:
+            continue
+        
+        # Filtre par responsable pôle data
+        if filtre_responsable != 'Tous':
+            responsables_filiere = filiere.get('responsable_pole_data', [])
+            if filtre_responsable not in responsables_filiere:
+                continue
+        
+        filieres_filtrees[key] = filiere
+    
+    # Show dashboard content only in Cartes mode
     if mode_affichage == "Cartes":
         # Titre principal
         st.title("📊 Tableau de bord des filières support - La Poste")
         st.markdown("### Expérimentations sur les outils IA Génératifs")
-        
-        # Sidebar pour les filtres
-        st.sidebar.header("🔍 Filtres")
-        
-        # Filtre par état d'avancement
-        etats_labels_custom = {
-            'prompts_deployes': 'AVANCÉ',
-            'tests_realises': 'INTERMÉDIAIRE',
-            'en_emergence': 'EN ÉMERGENCE',
-            'a_initier': 'À INITIER'
-        }
-        
-        etats_disponibles = ['Tous'] + list(etats_config.keys())
-        filtre_etat = st.sidebar.selectbox(
-            "État d'avancement",
-            etats_disponibles,
-            format_func=lambda x: "Tous" if x == "Tous" else etats_labels_custom.get(x, etats_config.get(x, {}).get('label', x))
-        )
-        
-        # Filtre par responsable pôle data
-        responsables_pole_data = ['Tous', 'Sarah', 'Clara', 'Olivier', 'Mouad', 'Arthur']
-        filtre_responsable = st.sidebar.selectbox("Responsable Pôle Data", responsables_pole_data)
         
         # Statistiques globales
         st.header("📈 Statistiques globales")
@@ -449,21 +464,6 @@ def main():
                     count,
                     help=label  # Le texte complet apparaît au survol
                 )
-        
-        # Filtrage des filières
-        filieres_filtrees = {}
-        for key, filiere in filieres.items():
-            # Filtre par état
-            if filtre_etat != 'Tous' and filiere.get('etat_avancement') != filtre_etat:
-                continue
-            
-            # Filtre par responsable pôle data
-            if filtre_responsable != 'Tous':
-                responsables_filiere = filiere.get('responsable_pole_data', [])
-                if filtre_responsable not in responsables_filiere:
-                    continue
-            
-            filieres_filtrees[key] = filiere
         
         # Pie charts pour les accès aux outils
         st.markdown("### 📊 Répartition des accès aux outils")
@@ -666,33 +666,7 @@ def main():
                         st.write(f"• {filiere}: {count} licences ({percentage:.1f}%)")
             else:
                 st.info("Aucune licence Copilot configurée")
-    else:
-        # In Edition and Tableau modes, set up filters without showing statistics
-        etats_labels_custom = {
-            'prompts_deployes': 'AVANCÉ',
-            'tests_realises': 'INTERMÉDIAIRE',
-            'en_emergence': 'EN ÉMERGENCE',
-            'a_initier': 'À INITIER'
-        }
-        
-        etats_disponibles = ['Tous'] + list(etats_config.keys())
-        filtre_etat = 'Tous'  # Default filter in edition and tableau modes
-        filtre_responsable = 'Tous'  # Default filter in edition and tableau modes
-        
-        # Filtrage des filières
-        filieres_filtrees = {}
-        for key, filiere in filieres.items():
-            # Filtre par état
-            if filtre_etat != 'Tous' and filiere.get('etat_avancement') != filtre_etat:
-                continue
-            
-            # Filtre par responsable pôle data
-            if filtre_responsable != 'Tous':
-                responsables_filiere = filiere.get('responsable_pole_data', [])
-                if filtre_responsable not in responsables_filiere:
-                    continue
-            
-            filieres_filtrees[key] = filiere
+    # No additional setup needed for Edition and Tableau modes - filters are already set up above
     
     # Affichage des fiches
     st.header("🗂️ Fiches d'avancement des filières")
