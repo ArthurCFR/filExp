@@ -17,6 +17,15 @@ try:
 except ImportError:
     MATPLOTLIB_AVAILABLE = False
 
+# Load approximately-equal-to icon
+try:
+    import base64
+    with open('/home/arthurc/dev/projects/filExperim/is-approximately-equal-to.png', 'rb') as f:
+        APPROX_ICON_B64 = base64.b64encode(f.read()).decode()
+    APPROX_ICON_HTML = f'<img src="data:image/png;base64,{APPROX_ICON_B64}" width="16" height="16" style="vertical-align: middle; margin-right: 4px;"/>'
+except:
+    APPROX_ICON_HTML = '≈ '
+
 # Configuration de la page
 st.set_page_config(
     page_title="Tableau de bord des filières support - La Poste",
@@ -210,7 +219,7 @@ def display_filiere_card(filiere_key, filiere_data, etats_config):
                 margin-bottom: 5px;
                 font-size: 0.9em;'>
                 <strong>🧑‍💼 Référents délégués:</strong><br/>
-                {filiere_data.get('nombre_referents_delegues', 0)}
+                {APPROX_ICON_HTML if filiere_data.get('nombre_referents_delegues_approx', False) else ''}{filiere_data.get('nombre_referents_delegues', 0)}
                 </div>""",
                 unsafe_allow_html=True
             )
@@ -222,7 +231,7 @@ def display_filiere_card(filiere_key, filiere_data, etats_config):
                 margin-bottom: 5px;
                 font-size: 0.9em;'>
                 <strong>🎓 Collaborateurs sensibilisés IAGen:</strong><br/>
-                {filiere_data.get('nombre_collaborateurs_sensibilises', 0)}{' (' + str(round((filiere_data.get('nombre_collaborateurs_sensibilises', 0) / filiere_data.get('nombre_collaborateurs_total', 1)) * 100, 1)) + '%)' if filiere_data.get('nombre_collaborateurs_total', 0) > 0 else ''}
+                {APPROX_ICON_HTML if filiere_data.get('nombre_collaborateurs_sensibilises_approx', False) else ''}{filiere_data.get('nombre_collaborateurs_sensibilises', 0)}{' (' + str(round((filiere_data.get('nombre_collaborateurs_sensibilises', 0) / filiere_data.get('nombre_collaborateurs_total', 1)) * 100, 1)) + '%)' if filiere_data.get('nombre_collaborateurs_total', 0) > 0 else ''}
                 </div>""",
                 unsafe_allow_html=True
             )
@@ -235,7 +244,7 @@ def display_filiere_card(filiere_key, filiere_data, etats_config):
                 margin-bottom: 5px;
                 font-size: 0.9em;'>
                 <strong>🔑 Accès LaPoste GPT:</strong><br/>
-                {filiere_data.get('acces', {}).get('laposte_gpt', 0)}
+                {APPROX_ICON_HTML if filiere_data.get('acces', {}).get('laposte_gpt_approx', False) else ''}{filiere_data.get('acces', {}).get('laposte_gpt', 0)}
                 </div>""", 
                 unsafe_allow_html=True
             )
@@ -247,7 +256,7 @@ def display_filiere_card(filiere_key, filiere_data, etats_config):
                 margin-bottom: 5px;
                 font-size: 0.9em;'>
                 <strong>📋 Licences Copilot:</strong><br/>
-                {filiere_data.get('acces', {}).get('copilot_licences', 0)}
+                {APPROX_ICON_HTML if filiere_data.get('acces', {}).get('copilot_licences_approx', False) else ''}{filiere_data.get('acces', {}).get('copilot_licences', 0)}
                 </div>""", 
                 unsafe_allow_html=True
             )
@@ -259,7 +268,7 @@ def display_filiere_card(filiere_key, filiere_data, etats_config):
                 margin-bottom: 5px;
                 font-size: 0.9em;'>
                 <strong>📄 Fiches d'opportunité:</strong><br/>
-                {filiere_data.get('fopp_count', 0)}
+                {APPROX_ICON_HTML if filiere_data.get('fopp_count_approx', False) else ''}{filiere_data.get('fopp_count', 0)}
                 </div>""",
                 unsafe_allow_html=True
             )
@@ -317,7 +326,14 @@ def display_filiere_card(filiere_key, filiere_data, etats_config):
                     new_date = st.date_input("Date", value=datetime.now(), key=f"date_{filiere_key}")
                     new_title = st.text_input("Titre", key=f"title_{filiere_key}")
                     new_desc = st.text_area("Description", key=f"desc_{filiere_key}")
-                    submitted = st.form_submit_button("Enregistrer")
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        submitted = st.form_submit_button("Enregistrer")
+                    with col2:
+                        cancelled = st.form_submit_button("Annuler")
+                    if cancelled:
+                        st.session_state[form_key] = False
+                        st.rerun()
                     if submitted and new_title and new_desc:
                         data = load_data()
                         filieres = data.get('filieres', {})
@@ -1038,20 +1054,36 @@ def main():
                         )
                         
                         # Nombre de collaborateurs sensibilisés à l'IAGen
-                        nouveau_nb_collab_sensibilises = st.number_input(
-                            "Nombre de collaborateurs sensibilisés à l'IAGen",
-                            min_value=0,
-                            value=filiere_data.get('nombre_collaborateurs_sensibilises', 0),
-                            key=f"collabIAGen_{filiere_a_editer}"
-                        )
+                        col_collab1, col_collab2 = st.columns([3, 1])
+                        with col_collab1:
+                            nouveau_nb_collab_sensibilises = st.number_input(
+                                "Nombre de collaborateurs sensibilisés à l'IAGen",
+                                min_value=0,
+                                value=filiere_data.get('nombre_collaborateurs_sensibilises', 0),
+                                key=f"collabIAGen_{filiere_a_editer}"
+                            )
+                        with col_collab2:
+                            collab_sens_approx = st.checkbox(
+                                "Approximatif",
+                                value=filiere_data.get('nombre_collaborateurs_sensibilises_approx', False),
+                                key=f"collabIAGen_approx_{filiere_a_editer}"
+                            )
                         
                         # Nombre de référents métier délégués
-                        nouveau_nb_referents_delegues = st.number_input(
-                            "Nombre de référents métier délégués",
-                            min_value=0,
-                            value=filiere_data.get('nombre_referents_delegues', 0),
-                            key=f"refdelegues_{filiere_a_editer}"
-                        )
+                        col_ref_del1, col_ref_del2 = st.columns([3, 1])
+                        with col_ref_del1:
+                            nouveau_nb_referents_delegues = st.number_input(
+                                "Nombre de référents métier délégués",
+                                min_value=0,
+                                value=filiere_data.get('nombre_referents_delegues', 0),
+                                key=f"refdelegues_{filiere_a_editer}"
+                            )
+                        with col_ref_del2:
+                            ref_del_approx = st.checkbox(
+                                "Approximatif",
+                                value=filiere_data.get('nombre_referents_delegues_approx', False),
+                                key=f"refdelegues_approx_{filiere_a_editer}"
+                            )
                         
                         # Nombre total de collaborateurs dans la filière
                         nouveau_nb_collab_total = st.number_input(
@@ -1062,31 +1094,55 @@ def main():
                         )
                         
                         # Nombre de fiches d'opportunité
-                        nouveau_fopp_count = st.number_input(
-                            "Nombre de fiches d'opportunité",
-                            min_value=0,
-                            value=filiere_data.get('fopp_count', 0),
-                            key=f"fopp_{filiere_a_editer}"
-                        )
+                        col_fopp1, col_fopp2 = st.columns([3, 1])
+                        with col_fopp1:
+                            nouveau_fopp_count = st.number_input(
+                                "Nombre de fiches d'opportunité",
+                                min_value=0,
+                                value=filiere_data.get('fopp_count', 0),
+                                key=f"fopp_{filiere_a_editer}"
+                            )
+                        with col_fopp2:
+                            fopp_approx = st.checkbox(
+                                "Approximatif",
+                                value=filiere_data.get('fopp_count_approx', False),
+                                key=f"fopp_approx_{filiere_a_editer}"
+                            )
                     
                     with col2:
                         st.markdown("**🔐 Accès et licences**")
                         
                         # Accès LaPoste GPT
-                        nouveau_laposte_gpt = st.number_input(
-                            "Accès LaPoste GPT",
-                            min_value=0,
-                            value=filiere_data.get('acces', {}).get('laposte_gpt', 0),
-                            key=f"gpt_{filiere_a_editer}"
-                        )
+                        col_gpt1, col_gpt2 = st.columns([3, 1])
+                        with col_gpt1:
+                            nouveau_laposte_gpt = st.number_input(
+                                "Accès LaPoste GPT",
+                                min_value=0,
+                                value=filiere_data.get('acces', {}).get('laposte_gpt', 0),
+                                key=f"gpt_{filiere_a_editer}"
+                            )
+                        with col_gpt2:
+                            laposte_gpt_approx = st.checkbox(
+                                "Approximatif",
+                                value=filiere_data.get('acces', {}).get('laposte_gpt_approx', False),
+                                key=f"gpt_approx_{filiere_a_editer}"
+                            )
                         
                         # Licences Copilot
-                        nouvelles_licences = st.number_input(
-                            "Licences Copilot",
-                            min_value=0,
-                            value=filiere_data.get('acces', {}).get('copilot_licences', 0),
-                            key=f"copilot_{filiere_a_editer}"
-                        )
+                        col_copilot1, col_copilot2 = st.columns([3, 1])
+                        with col_copilot1:
+                            nouvelles_licences = st.number_input(
+                                "Licences Copilot",
+                                min_value=0,
+                                value=filiere_data.get('acces', {}).get('copilot_licences', 0),
+                                key=f"copilot_{filiere_a_editer}"
+                            )
+                        with col_copilot2:
+                            copilot_approx = st.checkbox(
+                                "Approximatif",
+                                value=filiere_data.get('acces', {}).get('copilot_licences_approx', False),
+                                key=f"copilot_approx_{filiere_a_editer}"
+                            )
                     
                     # Point d'attention
                     st.markdown("**⚠️ Points d'attention**")
@@ -1160,6 +1216,11 @@ def main():
                             st.session_state.get(f"gpt_{filiere_a_editer}", 0) != filiere_data.get('acces', {}).get('laposte_gpt', 0) or
                             st.session_state.get(f"copilot_{filiere_a_editer}", 0) != filiere_data.get('acces', {}).get('copilot_licences', 0) or
                             st.session_state.get(f"attention_{filiere_a_editer}", "") != filiere_data.get('point_attention', '') or
+                            st.session_state.get(f"refdelegues_approx_{filiere_a_editer}", False) != filiere_data.get('nombre_referents_delegues_approx', False) or
+                            st.session_state.get(f"collabIAGen_approx_{filiere_a_editer}", False) != filiere_data.get('nombre_collaborateurs_sensibilises_approx', False) or
+                            st.session_state.get(f"fopp_approx_{filiere_a_editer}", False) != filiere_data.get('fopp_count_approx', False) or
+                            st.session_state.get(f"gpt_approx_{filiere_a_editer}", False) != filiere_data.get('acces', {}).get('laposte_gpt_approx', False) or
+                            st.session_state.get(f"copilot_approx_{filiere_a_editer}", False) != filiere_data.get('acces', {}).get('copilot_licences_approx', False) or
                             usages_session != usages_originaux or
                             events_session != events_text_original
                         )
@@ -1196,6 +1257,12 @@ def main():
                             filiere['usages_phares'] = nouveaux_usages
                             filiere['evenements_recents'] = nouveaux_evenements
                             filiere['responsable_pole_data'] = nouveaux_responsables
+                            # Sauvegarder les champs approximatifs
+                            filiere['nombre_referents_delegues_approx'] = ref_del_approx
+                            filiere['nombre_collaborateurs_sensibilises_approx'] = collab_sens_approx
+                            filiere['fopp_count_approx'] = fopp_approx
+                            filiere['acces']['laposte_gpt_approx'] = laposte_gpt_approx
+                            filiere['acces']['copilot_licences_approx'] = copilot_approx
                             
                             # Sauvegarde
                             if save_data(data):
