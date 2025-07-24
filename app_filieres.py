@@ -230,8 +230,13 @@ def display_filiere_card(filiere_key, filiere_data, etats_config):
                 border-left: 2px solid {couleur_bordure};
                 margin-bottom: 5px;
                 font-size: 0.9em;'>
+<<<<<<< HEAD
                 <strong>🎓 Collaborateurs sensibilisés IAGen:</strong><br/>
                 {APPROX_ICON_HTML if filiere_data.get('nombre_collaborateurs_sensibilises_approx', False) else ''}{filiere_data.get('nombre_collaborateurs_sensibilises', 0)}{' (' + str(round((filiere_data.get('nombre_collaborateurs_sensibilises', 0) / filiere_data.get('nombre_collaborateurs_total', 1)) * 100, 1)) + '%)' if filiere_data.get('nombre_collaborateurs_total', 0) > 0 else ''}
+=======
+                <strong>🎓 Collaborateurs impactés par le pôle data (ie. sensibilisation):</strong><br/>
+                {filiere_data.get('nombre_collaborateurs_sensibilises', 0)}{' (' + str(round((filiere_data.get('nombre_collaborateurs_sensibilises', 0) / filiere_data.get('nombre_collaborateurs_total', 1)) * 100, 1)) + '%)' if filiere_data.get('nombre_collaborateurs_total', 0) > 0 else ''}
+>>>>>>> 60c1d36158aebe80e6f1ccd928a8fc7e1afe2d3e
                 </div>""",
                 unsafe_allow_html=True
             )
@@ -1054,6 +1059,7 @@ def main():
                         )
                         
                         # Nombre de collaborateurs sensibilisés à l'IAGen
+<<<<<<< HEAD
                         col_collab1, col_collab2 = st.columns([3, 1])
                         with col_collab1:
                             nouveau_nb_collab_sensibilises = st.number_input(
@@ -1068,6 +1074,14 @@ def main():
                                 value=filiere_data.get('nombre_collaborateurs_sensibilises_approx', False),
                                 key=f"collabIAGen_approx_{filiere_a_editer}"
                             )
+=======
+                        nouveau_nb_collab_sensibilises = st.number_input(
+                            "Nombre de collaborateurs ayant été en contact avec le pôle Data (sensibilisation, experimentations, etc.)",
+                            min_value=0,
+                            value=filiere_data.get('nombre_collaborateurs_sensibilises', 0),
+                            key=f"collabIAGen_{filiere_a_editer}"
+                        )
+>>>>>>> 60c1d36158aebe80e6f1ccd928a8fc7e1afe2d3e
                         
                         # Nombre de référents métier délégués
                         col_ref_del1, col_ref_del2 = st.columns([3, 1])
