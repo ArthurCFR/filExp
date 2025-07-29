@@ -206,7 +206,7 @@ def display_filiere_card(filiere_key, filiere_data, etats_config):
                 border-left: 2px solid {couleur_bordure};
                 margin-bottom: 5px;
                 font-size: 0.9em;'>
-                <strong>👤 Référent métier:</strong><br/>
+                <strong>🧙🏼‍♂️ Référent métier:</strong><br/>
                 {filiere_data.get('referent_metier', 'Non défini')}
                 </div>""", 
                 unsafe_allow_html=True
@@ -218,7 +218,7 @@ def display_filiere_card(filiere_key, filiere_data, etats_config):
                 border-left: 2px solid {couleur_bordure};
                 margin-bottom: 5px;
                 font-size: 0.9em;'>
-                <strong>🧑‍💼 Référents délégués:</strong><br/>
+                <strong>🧝‍♂️ Référents délégués:</strong><br/>
                 {APPROX_ICON_HTML if filiere_data.get('nombre_referents_delegues_approx', False) else ''}{filiere_data.get('nombre_referents_delegues', 0)}
                 </div>""",
                 unsafe_allow_html=True
