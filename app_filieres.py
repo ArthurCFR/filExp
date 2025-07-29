@@ -255,7 +255,7 @@ def display_filiere_card(filiere_key, filiere_data, etats_config):
                 border-left: 2px solid {couleur_bordure};
                 margin-bottom: 5px;
                 font-size: 0.9em;'>
-                <strong>📟 Licences Copilot:</strong><br/>
+                <strong>🧑‍✈️ Licences Copilot:</strong><br/>
                 {APPROX_ICON_HTML if filiere_data.get('acces', {}).get('copilot_licences_approx', False) else ''}{filiere_data.get('acces', {}).get('copilot_licences', 0)}
                 </div>""", 
                 unsafe_allow_html=True
@@ -647,7 +647,7 @@ def main():
                     fig2 = px.pie(
                         values=list(copilot_data.values()),
                         names=list(copilot_data.keys()),
-                        title=f"📟 Licences Copilot <i>(Total : {total_copilot})</i>"
+                        title=f"🧑‍✈️ Licences Copilot <i>(Total : {total_copilot})</i>"
                     )
                     
                     # Assigner les couleurs manuellement pour chaque segment
@@ -671,7 +671,7 @@ def main():
                     fig, ax = plt.subplots(figsize=(6, 4))
                     ax.pie(list(copilot_data.values()), labels=list(copilot_data.keys()), 
                            autopct='%1.1f%%', colors=couleurs_copilot)
-                    ax.set_title(f"📟 Licences Copilot ({total_copilot} total)", style='italic')
+                    ax.set_title(f"🧑‍✈️ Licences Copilot ({total_copilot} total)", style='italic')
                     st.pyplot(fig)
                     plt.close(fig)
                 else:
