@@ -267,7 +267,7 @@ def display_filiere_card(filiere_key, filiere_data, etats_config):
                 border-left: 2px solid {couleur_bordure};
                 margin-bottom: 5px;
                 font-size: 0.9em;'>
-                <strong>📄 Fiches d'opportunité:</strong><br/>
+                <strong>📜 Fiches d'opportunité:</strong><br/>
                 {APPROX_ICON_HTML if filiere_data.get('fopp_count_approx', False) else ''}{filiere_data.get('fopp_count', 0)}
                 </div>""",
                 unsafe_allow_html=True
