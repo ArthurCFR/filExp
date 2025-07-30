@@ -230,7 +230,7 @@ def display_filiere_card(filiere_key, filiere_data, etats_config):
                 border-left: 2px solid {couleur_bordure};
                 margin-bottom: 5px;
                 font-size: 0.9em;'>
-                <strong>🎓 Collaborateurs sensibilisés IAGen:</strong><br/>
+                <strong>👩‍🎓 Collaborateurs sensibilisés IAGen:</strong><br/>
                 {APPROX_ICON_HTML if filiere_data.get('nombre_collaborateurs_sensibilises_approx', False) else ''}{filiere_data.get('nombre_collaborateurs_sensibilises', 0)}{' (' + str(round((filiere_data.get('nombre_collaborateurs_sensibilises', 0) / filiere_data.get('nombre_collaborateurs_total', 1)) * 100, 1)) + '%)' if filiere_data.get('nombre_collaborateurs_total', 0) > 0 else ''}
                 </div>""",
                 unsafe_allow_html=True
